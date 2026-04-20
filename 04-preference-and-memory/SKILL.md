@@ -4,6 +4,7 @@ description: "Captures and evolves user preferences with confidence levels. Main
 submodules:
   - wisdom-and-human-psychology.md
   - brian-voc-data.md
+  - brian-decision-model.md
 ---
 
 ## Submodules

@@ -10,6 +10,11 @@ submodules:
 
 > Plan every image. Generate with intent. Critique and refine. Compress and deliver fast.
 
+## Submodules
+
+- **media-prompts.md** — Full prompt templates for image generation (schema, brand style, logo lockups, OG images, video), plus Ideogram v3 API call format.
+- **compression-pipeline.md** — Python compression/verification code, format standards tables, image dimensions reference, Cloudflare Image Transforms, CLS prevention, broken image detection (Playwright).
+
 ---
 
 ## Core Principle
