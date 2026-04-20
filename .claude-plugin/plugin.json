@@ -1,24 +1,52 @@
 {
-  "name": "emdash-operating-system",
-  "description": "58-skill autonomous product-building system for Claude Code. Converts weak one-line prompts into fully realized, production-ready SaaS products with elite UX, multimedia, testing, and deployment on Cloudflare.",
-  "version": "5.1.0",
+  "name": "emdash",
+  "description": "14-category autonomous product-building OS for Claude Code. Converts one-line prompts into production-ready products on Cloudflare Workers with Angular, Hono, D1, Stripe, and 58 submodule capabilities.",
+  "version": "6.0.0",
   "author": {
     "name": "Brian Zalewski",
     "url": "https://megabyte.space"
   },
-  "homepage": "https://github.com/HeyMegabyte/emdash-skills",
-  "repository": "https://github.com/HeyMegabyte/emdash-skills",
+  "homepage": "https://github.com/HeyMegabyte/emdash",
+  "repository": "https://github.com/HeyMegabyte/emdash",
   "license": "MIT",
   "keywords": [
-    "saas",
-    "cloudflare",
-    "angular",
-    "hono",
     "autonomous",
     "product-building",
-    "testing",
+    "cloudflare-workers",
+    "angular",
+    "hono",
+    "saas",
     "deployment",
     "design-system",
-    "computer-use"
+    "seo",
+    "testing",
+    "ai-native"
+  ],
+  "skills": [
+    "01-operating-system",
+    "02-goal-and-brief",
+    "03-planning-and-research",
+    "04-preference-and-memory",
+    "05-architecture-and-stack",
+    "06-build-and-slice-loop",
+    "07-quality-and-verification",
+    "08-deploy-and-runtime-verification",
+    "09-brand-and-content-system",
+    "10-experience-and-design-system",
+    "11-motion-and-interaction-system",
+    "12-media-orchestration",
+    "13-observability-and-growth",
+    "14-independent-idea-engine"
+  ],
+  "agents": [
+    "agents/architect.md",
+    "agents/code-simplifier.md",
+    "agents/completeness-checker.md",
+    "agents/computer-use-operator.md",
+    "agents/deploy-verifier.md",
+    "agents/security-reviewer.md",
+    "agents/seo-auditor.md",
+    "agents/test-writer.md",
+    "agents/visual-qa.md"
   ]
 }
