@@ -16,7 +16,7 @@
     <img alt="Homepage" src="https://img.shields.io/website?down_color=%23FF4136&down_message=Down&label=Homepage&logo=home-assistant&logoColor=white&up_color=%232ECC40&up_message=Up&url=https%3A%2F%2Fmegabyte.space&style=for-the-badge" />
   </a>
   <a href="https://github.com/megabytespace/claude-skills/blob/master/LICENSE" title="License" target="_blank">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-7C3AED?logo=open-source-initiative&logoColor=white&style=for-the-badge" />
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-Rutgers-7C3AED?logo=open-source-initiative&logoColor=white&style=for-the-badge" />
   </a>
   <a href="https://github.com/megabytespace/claude-skills" title="GitHub" target="_blank">
     <img alt="GitHub Stars" src="https://img.shields.io/github/stars/megabytespace/claude-skills?logo=github&logoColor=white&style=for-the-badge&color=060610" />
@@ -301,7 +301,7 @@ Skills require only two frontmatter fields: `name` (lowercase, max 64 chars) and
 
 Copyright (c) 2024-2026 [Brian Zalewski](https://megabyte.space) / [Megabyte Labs](https://megabyte.space)
 
-Licensed under the [MIT License](LICENSE).
+Licensed under the [Rutgers License](LICENSE). Pay what you think is fair.
 
 <div align="center">
   <br/>
