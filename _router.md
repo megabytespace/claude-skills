@@ -6,7 +6,7 @@ All 14 categories always loaded. Submodules provide specialized reference.
 
 | # | Category | Submodules |
 |---|----------|-----------|
-| 01 | Operating System | ai-native-coding, autonomous-orchestrator |
+| 01 | Operating System | ai-native-coding, autonomous-orchestrator, one-line-saas |
 | 02 | Goal and Brief | — |
 | 03 | Planning and Research | competitive-analysis |
 | 04 | Preference and Memory | wisdom-and-human-psychology |
