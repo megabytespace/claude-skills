@@ -358,6 +358,30 @@ When things break during execution, fix them autonomously:
 - Conflict resolution
 - Self-improvement protocol
 
+## Self-Improving System (ALWAYS ACTIVE)
+
+Every session must capture learnings. Detect these signals and act:
+
+| Signal | Detection | Action |
+|--------|-----------|--------|
+| Correction | "no", "not that", "instead", "wrong" | Save to feedback memory |
+| Permanent rule | "always", "never", "must", "every time" | Save to preferences or rules |
+| Tech decision | First use of a new tool/library | Save to tech_preferences_confirmed.md |
+| Design feedback | "darker", "simpler", "shorter", color/font changes | Save to design patterns in skill 10 |
+| Validated approach | Silence + next instruction (no correction) | Mark pattern as confirmed |
+| Repeated pattern | Same request type 3+ times in session | Promote to skill content |
+| New capability | Brian asks for something no skill covers | Create submodule or update existing |
+
+At session end, the Stop hook auto-commits and pushes any skill/memory changes to megabytespace/claude-skills. Every prompt makes the system smarter.
+
+### What to Update Where
+- **Memory files** (`~/.claude/projects/.../memory/`): User preferences, feedback, project state
+- **Skill submodules** (`~/.agentskills/*/`): Patterns, templates, technical decisions
+- **Rules** (`~/.claude/rules/`): Only for rules loaded every prompt (keep under 2200 tokens total)
+- **CLAUDE.md**: Only for structural changes (rare)
+- **Agents** (`~/.claude/agents/`): New agent types or tool scope changes
+- **settings.json**: New permissions, network domains, hooks (confirm with user first)
+
 ## What This Skill Must Never Own
 - Stack-specific implementation details (→ 05)
 - Project-specific branding (→ 09)
