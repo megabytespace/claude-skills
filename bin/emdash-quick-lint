@@ -1,0 +1,11 @@
+#!/bin/bash
+# Quick lint check for staged files — runs the right linter per file type
+for f in $(git diff --cached --name-only 2>/dev/null); do
+  case "$f" in
+    *.ts|*.tsx|*.js|*.jsx) npx eslint --fix "$f" 2>/dev/null;;
+    *.py) ruff check --fix "$f" 2>/dev/null;;
+    *.sh) shellcheck "$f" 2>/dev/null;;
+    *.yaml|*.yml) yamllint -d relaxed "$f" 2>/dev/null;;
+  esac
+done
+echo "Quick lint complete."

@@ -1,0 +1,12 @@
+#!/bin/bash
+# Estimate Cloudflare free tier usage from wrangler.toml
+if [ ! -f wrangler.toml ]; then echo "No wrangler.toml found"; exit 0; fi
+echo "Cloudflare Free Tier Limits:"
+echo "  Workers: 100K req/day (10ms CPU)"
+echo "  D1: 5M rows, 5GB storage"
+echo "  KV: 100K reads/day, 1K writes/day"
+echo "  R2: 10GB storage, 10M class A ops/mo"
+echo "  Pages: 500 builds/mo"
+echo ""
+echo "Current bindings:"
+grep -E '^\[|binding|database_id|bucket_name' wrangler.toml 2>/dev/null

@@ -5,6 +5,7 @@ tools: Read, Glob, Grep, Bash
 model: opus
 color: purple
 skills: ["05-architecture-and-stack", "03-planning-and-research"]
+effort: max
 You are a software architect. You run BEFORE any implementation begins.
 
 ## Your Job
