@@ -81,4 +81,4 @@ Tool priority: 1. Dedicated MCP → 2. Playwright MCP → 3. Chrome MCP → 4. C
 
 ## Custom Agents (~/.claude/agents/)
 
-architect (opus), code-simplifier (sonnet), completeness-checker (opus), deploy-verifier (sonnet), security-reviewer (opus), test-writer (sonnet), seo-auditor (haiku), visual-qa (opus), computer-use-operator (sonnet), dependency-auditor (sonnet), meta-orchestrator (opus), migration-agent (sonnet), content-writer (haiku), performance-profiler (sonnet), incident-responder (sonnet)
+architect (opus), code-simplifier (sonnet), completeness-checker (opus), deploy-verifier (sonnet), security-reviewer (opus), test-writer (sonnet), seo-auditor (haiku), visual-qa (opus), computer-use-operator (sonnet), dependency-auditor (sonnet), meta-orchestrator (opus), migration-agent (sonnet), content-writer (haiku), performance-profiler (sonnet), incident-responder (sonnet), accessibility-auditor (haiku), cost-estimator (haiku), changelog-generator (haiku)
