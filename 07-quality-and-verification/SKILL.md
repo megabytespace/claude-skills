@@ -13,11 +13,12 @@ submodules:
   - testing-matrices.md
   - adversarial-testing.md
   - spec-driven-development.md
+  - stagehand-ai-testing.md
 ---
 
 # 07 — Quality and Verification
 
-Submodules: accessibility-gate (axe-core, focus styling), performance-optimization (CWV, budgets, lazy loading), security-hardening (CSP, OWASP, Zod, Turnstile, rate limiting), computer-use-automation (native macOS), chrome-and-browser-workflows (Chrome/Playwright MCP), completeness-verification (multi-pass AI visual), visual-inspection-loop (screenshot/critique/fix), tdd-verification (10-point journey test), testing-matrices (payment/email/form templates), adversarial-testing (chaos/stress tests).
+Submodules: accessibility-gate (axe-core, focus styling), performance-optimization (CWV, budgets, lazy loading), security-hardening (CSP, OWASP, Zod, Turnstile, rate limiting), computer-use-automation (native macOS), chrome-and-browser-workflows (Chrome/Playwright MCP), completeness-verification (multi-pass AI visual), visual-inspection-loop (screenshot/critique/fix), tdd-verification (10-point journey test), testing-matrices (payment/email/form templates), adversarial-testing (chaos/stress tests), stagehand-ai-testing (AI browser fallback, self-healing selectors).
 
 ## Verification Pyramid
 
