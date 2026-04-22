@@ -10,59 +10,142 @@ Tests are append-only. Every feature built adds tests. Tests are never deleted �
 
 ## The Growing Journey Test
 
-### Structure: One Long User Journey, Not Isolated Tests
+### Structure: Parallel Journey Chunks (~30s each)
+Each chunk is a self-contained journey segment that: authenticates → navigates to its area via UI clicks → tests that area's features → exits. Chunks run in parallel. Cross-page navigation happens WITHIN each chunk. The full suite finishes in ~30-60s regardless of how many features exist.
+
 ```typescript
-// e2e/journey.spec.ts — THE master test that proves EVERYTHING works
-// This file ONLY GROWS. New features append steps.
-
-test.describe.serial('Complete User Journey', () => {
-  let page: Page;
-  
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
+// e2e/journeys/discovery.spec.ts (~30s)
+// Tests: homepage, navigation, footer, SEO, a11y
+test.describe('Journey: Discovery', () => {
+  test('Homepage → nav → every page loads → footer links', async ({ page }) => {
+    await page.goto(PROD_URL);
+    await expect(page.locator('h1')).toBeVisible();
+    // Click through every nav link, verify each page
+    for (const link of await page.locator('nav a[href]').all()) {
+      await link.click();
+      await expect(page.locator('h1')).toBeVisible();
+      await page.goBack();
+    }
+    // Footer links
+    for (const link of await page.locator('footer a[href]').all()) {
+      const href = await link.getAttribute('href');
+      if (href?.startsWith('http')) {
+        const res = await page.request.get(href);
+        expect(res.status()).toBeLessThan(400);
+      }
+    }
   });
+});
 
-  // === PHASE 1: DISCOVERY (added when homepage built) ===
-  test('01. Homepage loads', async () => { /* ... */ });
-  test('02. Navigation works', async () => { /* ... */ });
-  test('03. Footer links resolve', async () => { /* ... */ });
-  
-  // === PHASE 2: AUTH (added when auth built) ===
-  test('04. Click Sign Up from homepage nav', async () => {
+// e2e/journeys/auth.spec.ts (~30s)
+// Tests: signup, login, logout, profile, session persistence
+test.describe('Journey: Auth', () => {
+  test('Homepage → Sign Up → complete form → dashboard → logout → login', async ({ page }) => {
+    await page.goto(PROD_URL);
     await page.click('nav >> text=Sign Up');
     await expect(page).toHaveURL(/sign-up/);
+    // ... complete signup with test account
+    await expect(page).toHaveURL(/dashboard/);
+    // Navigate to profile via UI
+    await page.click('[data-testid="user-menu"]');
+    await page.click('text=Profile');
+    await expect(page.locator('h1')).toHaveText(/Profile/);
+    // Logout
+    await page.click('[data-testid="user-menu"]');
+    await page.click('text=Log out');
+    await expect(page).toHaveURL(/$/);
+    // Login again
+    await page.click('nav >> text=Log in');
+    // ... login with test account
+    await expect(page).toHaveURL(/dashboard/);
   });
-  test('05. Complete signup flow', async () => { /* ... */ });
-  test('06. Redirect to dashboard after signup', async () => { /* ... */ });
-  
-  // === PHASE 3: CORE FEATURE (added when feature built) ===
-  test('07. Navigate to feature via dashboard', async () => {
-    // NOT page.goto('/feature') — click through the UI like a user
-    await page.click('[data-testid="sidebar-feature"]');
-    await expect(page.locator('h1')).toHaveText('Feature Name');
+});
+
+// e2e/journeys/crud.spec.ts (~30s)
+// Tests: create, read, update, delete for the core entity
+test.describe('Journey: CRUD', () => {
+  test('Login → dashboard → create item → edit → verify list → delete → verify gone', async ({ page }) => {
+    await loginAsTestUser(page); // shared helper — logs in via UI clicks
+    await page.click('[data-testid="sidebar-items"]');
+    // Create
+    await page.click('text=New Item');
+    await page.fill('[data-testid="item-name"]', 'Test Item');
+    await page.click('text=Save');
+    await expect(page.locator('text=Test Item')).toBeVisible();
+    // Edit
+    await page.click('text=Test Item');
+    await page.fill('[data-testid="item-name"]', 'Updated Item');
+    await page.click('text=Save');
+    await expect(page.locator('text=Updated Item')).toBeVisible();
+    // Delete
+    await page.click('[data-testid="delete-item"]');
+    await page.click('text=Yep, delete it'); // microcopy!
+    await expect(page.locator('text=Updated Item')).not.toBeVisible();
   });
-  test('08. Create new item', async () => { /* ... */ });
-  test('09. Edit the item', async () => { /* ... */ });
-  test('10. Verify item appears in list', async () => { /* ... */ });
-  
-  // === PHASE 4: BILLING (added when Stripe built) ===
-  test('11. Navigate to billing from settings', async () => {
+});
+
+// e2e/journeys/billing.spec.ts (~30s)
+// Tests: pricing page, checkout flow, subscription status
+test.describe('Journey: Billing', () => {
+  test('Homepage → Pricing → select plan → dashboard → Settings → Billing', async ({ page }) => {
+    await page.goto(PROD_URL);
+    await page.click('nav >> text=Pricing');
+    await expect(page.locator('[data-testid="pricing-table"]')).toBeVisible();
+    // Login and check billing
+    await loginAsTestUser(page);
     await page.click('text=Settings');
     await page.click('text=Billing');
-    await expect(page).toHaveURL(/billing/);
+    await expect(page.locator('[data-testid="subscription-status"]')).toBeVisible();
   });
-  test('12. Subscription plan visible', async () => { /* ... */ });
-  
-  // === PHASE N: (added with each new feature) ===
-  // NEVER delete above tests. Only add below this line.
+});
+
+// e2e/journeys/[feature-name].spec.ts (~30s each)
+// NEW FEATURES: create a new file per feature area
+// Each file: login → navigate to feature via clicks → test the feature → cleanup
+```
+
+### Shared Helpers (don't repeat auth in every chunk)
+```typescript
+// e2e/helpers/auth.ts
+export async function loginAsTestUser(page: Page) {
+  await page.goto(PROD_URL);
+  await page.click('nav >> text=Log in');
+  await page.fill('[data-testid="email"]', 'test@megabyte.space');
+  await page.fill('[data-testid="password"]', process.env.TEST_USER_PASSWORD!);
+  await page.click('text=Log in');
+  await expect(page).toHaveURL(/dashboard/);
+}
+```
+
+### Playwright Config: Parallel + 30s Budget
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  fullyParallel: true,          // all spec files run in parallel
+  workers: 4,                    // 4 browser instances simultaneously
+  timeout: 30_000,               // 30s per test — if it takes longer, it's too big
+  retries: 1,                    // one retry for flaky network
+  use: {
+    baseURL: process.env.PROD_URL,
+    trace: 'on-first-retry',
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'mobile', use: { ...devices['iPhone 14'] } },
+  ],
 });
 ```
 
-### Why Serial, Not Parallel
-The journey test runs `.serial` because it tests CROSS-PAGE NAVIGATION. Test 07 depends on being logged in from test 05. Test 11 depends on being on the dashboard from test 06. This IS the real user experience — sequential, stateful, cross-page.
+### The 30-Second Rule
+Each journey chunk MUST complete in ≤30s. If it grows past 30s, SPLIT it into two chunks. The split point is wherever a natural navigation boundary exists (e.g., "auth journey" vs "dashboard journey"). Both new chunks still navigate via UI clicks. Both still run in parallel with everything else.
 
-### Parallel Tests Are Separate
-Feature-specific tests (form validation, edge cases, error states) run in parallel in separate files. The journey test is the integration layer that proves everything works TOGETHER.
+### Why Parallel Chunks Beat Serial
+- 10 features × 30s serial = 5 minutes
+- 10 features × 30s parallel (4 workers) = ~75 seconds
+- Cross-page navigation still tested WITHIN each chunk
+- Auth state is independent per chunk (each logs in fresh)
+- One flaky chunk doesn't block the others
+- New features = new file, existing files untouched
 
 ## Cross-Page Navigation Rules
 
