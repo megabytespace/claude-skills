@@ -8,7 +8,13 @@ description: "ChatGPT-style three-column layout as primary interface for all ser
 Three-column layout: left=thread history+data editor | center=chat with inline widgets | right=contextual panel (phone/status/settings). Auth overlay=same page with `backdrop-filter:blur(12px)` over dashboard, not a separate route. `/login`→redirect to `/dashboard`.
 
 ## Widget System
-Chat messages carry `widget` and `widgetData` fields. Template uses `@if (msg.widget === 'type')` to render inline interactive components. Core widgets: ssn-auth|voice-biometric|upload|status-cards|quick-actions|video-player|application-video|timeline|progress|confirm|data-view|form-wizard. Every AI response includes contextual action buttons via `buttons[]` array.
+Chat messages carry `widget` and `widgetData` fields. Template uses `@if (msg.widget === 'type')` to render inline interactive components. Core widgets: ssn-auth|voice-biometric|upload|status-cards|quick-actions|video-player|application-video|timeline|progress|confirm|data-view|form-wizard|document-checklist|notification|progress-bar|profile-completion|program-card|settings. Every AI response includes contextual action buttons via `buttons[]` array.
+
+## Command Palette (Cmd+K)
+Linear/Notion-style Cmd+K palette. Fuzzy search across all commands: apply|upload|status|profile|call|notifications|settings|signout. Keyboard shortcut `Meta+K` toggles. Styled as glass modal centered at 20vh from top.
+
+## Notification System
+Bell icon in header with unread badge. Dropdown shows time-ordered notifications with read/unread state. Mark-all-read. Click notification triggers action. Notifications generated from: application status changes, document processing, profile completion prompts.
 
 ## Auth Flow
 anonymous→SSN entry (overlay)→voice biometric (overlay)→authenticated (blur dissolves). SSN: AES-256-GCM encrypted, font-mono tracking-wide centered input. Voice: 5-second recording, animated pulse rings, processing spinner, green checkmark on success. Skip option for anonymous browsing.
