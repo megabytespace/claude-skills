@@ -23,9 +23,12 @@ submodules:
   - eval-driven-development.md
   - ui-completeness-sweep.md
   - semgrep-codebase-rules.md
+  - audio-video-sync.md
   - e2e-accumulation.md
   - evidence-collection.md
   - agentic-security.md
+  - picovoice-eagle-biometric.md
+  - stagehand-ai-fallback.md
 ---
 
 # 07 — Quality and Verification

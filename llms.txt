@@ -28,6 +28,7 @@
 
 ## Reference Highlights
 
+- OS: [autonomous-orchestrator](01-operating-system/autonomous-orchestrator.md), [context-engineering](01-operating-system/context-engineering.md)
 - Architecture: [api-design-and-documentation](05-architecture-and-stack/api-design-and-documentation.md), [auth-and-session-management](05-architecture-and-stack/auth-and-session-management.md), [drizzle-orm-and-migrations](05-architecture-and-stack/drizzle-orm-and-migrations.md), [mcp-and-cloud-integrations](05-architecture-and-stack/mcp-and-cloud-integrations.md)
 - Build: [contact-forms-and-endpoints](06-build-and-slice-loop/contact-forms-and-endpoints.md), [file-uploads-and-storage](06-build-and-slice-loop/file-uploads-and-storage.md), [onboarding-and-first-run](06-build-and-slice-loop/onboarding-and-first-run.md), [site-search](06-build-and-slice-loop/site-search.md), [webhook-system](06-build-and-slice-loop/webhook-system.md)
 - Quality: [accessibility-gate](07-quality-and-verification/accessibility-gate.md), [agentic-security](07-quality-and-verification/agentic-security.md), [performance-optimization](07-quality-and-verification/performance-optimization.md), [security-hardening](07-quality-and-verification/security-hardening.md), [spec-driven-development](07-quality-and-verification/spec-driven-development.md), [visual-regression](07-quality-and-verification/visual-regression.md)

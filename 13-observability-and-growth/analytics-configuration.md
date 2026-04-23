@@ -1,6 +1,7 @@
 ---
 name: "Analytics Configuration"
 description: "Canonical owner of GA4 setup (14-step automation), GTM container configuration, PostHog SDK integration, feature flags, A/B tests, event taxonomy, funnel definitions, session recording config, and scroll/engagement tracking. The intelligence layer that powers data-driven decisions."
+updated: "2026-04-23"
 always-load: false---
 
 ---

@@ -1,6 +1,7 @@
 ---
 name: "Background Jobs and Workflows"
 description: "Inngest for durable background jobs on CF Workers. CF Workflows v2 (rearchitected control plane, higher concurrency). Event-driven architecture, scheduled tasks, retry logic, fan-out patterns, and step functions. Covers Stripe webhook processing, email sequences, data sync, D1→R2 backups, and long-running workflows. Also: CF Cron Triggers (250 paid), CF Queues for high-throughput."
+updated: "2026-04-23"
 ---
 
 # Background Jobs and Workflows

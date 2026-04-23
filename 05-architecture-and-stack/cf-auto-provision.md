@@ -1,6 +1,7 @@
 ---
 name: "CF Auto-Provision"
 description: "Single-function project bootstrap via Cloudflare MCP + cf CLI (~3000 API ops). One call provisions D1 database (global read replication), KV namespaces (cache + rate limit), R2 bucket, DNS records, Worker routes, Flagship project, and generates wrangler.jsonc with all bindings. Integrates Clerk, Stripe, PostHog, and Sentry project creation."
+updated: "2026-04-23"
 ---
 
 # CF Auto-Provision

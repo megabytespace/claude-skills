@@ -1,6 +1,7 @@
 ---
 name: "AI Technology Integration"
 description: "Latest AI APIs, models, and techniques for building AI-native products. GPT-4o vision for visual QA, Workers AI for edge inference, embeddings for RAG, structured outputs, image/video generation, speech, and the visual TDD loop."
+updated: "2026-04-23"
 allowed-tools: "Bash, Read, Write, Edit, mcp__playwright__*"
 ---
 
@@ -24,7 +25,7 @@ Acceptance: all 6 breakpoints clean, zero critical/high issues, max 5 iterations
 | Visual QA | GPT-4o | ~$0.01/img | 2-5s |
 | Code gen | Claude Opus 4.6 | Included | - |
 | Logo | Ideogram v3 | ~$0.03 | 5-10s |
-| Hero/scene image | gpt-image-1 | ~$0.04 | 10-20s |
+| Hero/scene image | gpt-image-1.5 | ~$0.04 | 10-20s |
 | Hero video (4s) | Sora | ~$0.10 | 30-60s |
 | Alt text | Workers AI (llama-3.2-11b-vision) | Free | <1s |
 | Embeddings | Workers AI (bge-base-en-v1.5) | Free | <100ms |
@@ -57,7 +58,7 @@ response_format: { type: 'json_schema', json_schema: { name: 'visual_qa', schema
 ## Image Generation
 
 **Logo (Ideogram):** `"Minimalist logo for [BRAND], cyan (#00E5FF) on black (#060610), clean geometric, no text, vector style"` — V_3, 1:1, DESIGN style
-**Hero (GPT Image):** `"Dark atmospheric hero, abstract geometric, cyan light on deep black, premium tech, 21:9"` — gpt-image-1, 1536x1024, high
+**Hero (GPT Image):** `"Dark atmospheric hero, abstract geometric, cyan light on deep black, premium tech, 21:9"` — gpt-image-1.5, 1536x1024, high
 **OG (1200x630):** Generate 1536x1024 then resize with CF Image Resizing
 
 **Critique Loop:** Generate -> GPT-4o rate 1-10 -> if <8 remix with improved prompt -> max 3 iterations
@@ -75,7 +76,7 @@ await env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [{ role: 'system'
 ```
 
 ## AI Integration Points
-07 Quality (visual TDD), 08 Deploy (post-deploy vision), 09 Brand (copy/tone), 10 Design (critique), 12 Media (gen+critique), 14 Idea Engine (research), 20 A11y (alt text), 28 SEO (keywords/meta), 37 Search (RAG), 42 i18n (translation), 43 AI Chat (RAG bot)
+07 Quality (visual TDD), 08 Deploy (post-deploy vision), 09 Brand (copy/tone), 10 Design (critique), 12 Media (gen+critique), 14 Idea Engine (research), 07/accessibility-gate (alt text), 09/seo-and-keywords (keywords/meta), 06/site-search (RAG), 06/internationalization (translation), 06/ai-chat-widget (RAG bot)
 
 ## Ownership
 **Owns:** AI model selection, Visual TDD loop, image/video generation, Workers AI patterns, RAG architecture, structured outputs, cost optimization.
