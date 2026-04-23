@@ -1,12 +1,11 @@
 # Emdash Skills System
 
-> 14 top-level skills, 83 reference docs, 18 agents, and 12 templates for Emdash’s product-building workflow.
+> 14 top-level skills, 91 reference docs, 18 agents, and 12 templates for Emdash’s product-building workflow.
 
 ## Supporting Docs
 
 - [Router](_router.md) — route prompts to the smallest useful skill set
 - [Conventions](CONVENTIONS.md) — shared defaults, commands, breakpoints, CSP, integrations
-- [Quick Reference](QUICK_REF.md) — deploy/test/emergency shortcuts
 - [Skill Profiles](SKILL_PROFILES.md) — default bundles by product type
 - [Changelog](CHANGELOG.md) — package history
 
