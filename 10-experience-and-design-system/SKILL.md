@@ -48,7 +48,10 @@ Body min 16px (prefer 18). Line-height: 1.6 body (or `calc(2px + 2ex + 2px)` for
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.5); --shadow-glow: 0 0 20px rgba(0,229,255,0.15);
 }
 ```
-Never #000 (use #060610). Never #fff (use #f0f0f5). Cyan: primary CTAs. Blue: secondary. Gradients on buttons only. 6% borders. Subtle glow on primary interactive. Dark-first: elevation via lightness not shadows. Background hierarchy: base->surface 1-3. Status colors: desaturate 10-20% from light-mode equivalents. Modern color: OKLCH perceptually uniform, `color-mix()` for blending, relative colors `oklch(from var(--brand) l c calc(h + 30))`, `light-dark()` for theme-aware values.
+Never #000 (use #060610 — pure black causes visual vibration, halation, eye strain). Never #fff (use #f0f0f5). Cyan: primary CTAs. Blue: secondary. Gradients on buttons only. 6% borders. Subtle glow on primary interactive.
+Dark-first architecture: elevation via lightness not shadows. Background hierarchy: base->surface 1->surface 2->surface 3. Text hierarchy: primary->secondary->tertiary. Status colors: desaturate 10-20% from light-mode equivalents. Sans-serif fonts perform best in dark mode; use `-webkit-font-smoothing:antialiased` to mitigate halo effects.
+Theme implementation: `color-scheme:light dark` declaration, `data-theme="dark|light"` attributes for user override, `localStorage` for persistence, `prefers-color-scheme` as system default. Always provide toggle.
+Modern color: OKLCH perceptually uniform, `color-mix()` for blending without precomputed palettes, relative colors `oklch(from var(--brand) l c calc(h + 30))`, `light-dark()` for theme-aware values. Contrast: 4.5:1 normal text, 3:1 large text/UI components (WCAG 2.1 AA).
 
 ## CSS Architecture (2026)
 ```css
@@ -58,7 +61,10 @@ Never #000 (use #060610). Never #fff (use #f0f0f5). Cyan: primary CTAs. Blue: se
 Native nesting (Sass now optional). Container queries (`container-type:inline-size`, `@container`). `:has()` parent selector replaces JS. `@scope` for bounded styling. Anchor positioning for tooltips/dropdowns without JS. CSS `if()` conditional logic. Typed `attr()`. `sibling-index()`/`sibling-count()` for stagger delays: `transition-delay: calc((sibling-index() - 1) * 40ms)`. `appearance:base-select` for native `<select>` customization (Chrome 135+). Feature queries (`@supports`) for progressive enhancement.
 
 ## W3C DTCG Design Tokens (2025.10 Stable)
-JSON format, `.tokens`/`.tokens.json` extensions. Token structure: `$value` (required), `$type`, `$description`, `$deprecated`, `$extensions`. Types: color|dimension|duration|fontFamily|fontWeight|cubicBezier|number + composites (shadow, border, gradient, typography, transition). Aliasing: `"$value": "{base.color}"`. Group `$type` inheritance. Full Display P3, OKLCH, CSS Color Module 4. Naming: no `$` prefix, no `{}`/`.` in names. Tools: Tokens Studio, Style Dictionary, Penpot, Figma.
+JSON format, `.tokens`/`.tokens.json` extensions, MIME: `application/design-tokens+json`. Token structure: `$value` (required), `$type`, `$description`, `$deprecated`, `$extensions` (vendor). Types: color|dimension|duration|fontFamily|fontWeight|cubicBezier|number + composites (shadow, border, gradient, typography, transition). Aliasing: `"$value": "{base.color}"` resolves to target. `$ref` JSON Pointer for property access. Group `$type` inheritance to children. `$root` for base+variants, `$extends` for deep merge. Full Display P3, OKLCH, CSS Color Module 4. Naming: no `$` prefix, no `{}`/`.` in names. Multi-brand theming without file duplication. Tools: Tokens Studio, Style Dictionary, Penpot, Figma.
+
+## AI-Ready Design Documentation
+DESIGN.md: plain-text markdown optimized for LLM consumption. Sections: Visual Theme, Color Palette, Typography, Spacing+Layout, Components, Elevation. Atomic documentation: small context-rich units tied to components. Consistent naming across Figma/docs/code. Component metadata: states, variants, props, constraints, a11y attributes, rationale. MCP servers (Figma Dev Mode MCP) for standardized programmatic access. Token APIs queryable by AI tools.
 
 ## Layout
 Container: 1140px (wide 1400, narrow 720), padding clamp(1rem,3vw,3rem). Sections: clamp(4rem,8vw,8rem), border between. Grid: auto-fit minmax(280px,1fr), 1fr at 768px.
@@ -81,7 +87,13 @@ Never: default Bootstrap/Tailwind, Inter/Poppins font, generic purple-blue gradi
 Always: hierarchy via scale+weight, sparse color, scannable 3s, distinct sections, whitespace, custom typography (never default AI fonts), semantic color naming (--color-action not --color-gradient-start), purposeful motion (each animation serves state/attention/brand), real photography over AI illustrations, test 375+1280, polished footer.
 Anti-AI (NNGroup 2026): asymmetry, custom icons, mixed serif/sans, bespoke micro-interactions. If "make me a modern website" could produce it, it fails.
 
+## Accessibility (WCAG 2.2 AA Baseline)
+Focus Appearance: 2px thick, 3:1 contrast. Focus Not Obscured: never hidden by sticky headers. Target Size: min 24x24px (44px touch). Dragging: single-pointer alternative for all drag-and-drop. Consistent Help: same relative order across pages. Redundant Entry: never require same info twice. Accessible Auth: support password managers/autofill/biometrics.
+WCAG 3.0 (Working Draft March 2026, est. 2028-2030): 174 requirements, no A/AA/AAA levels, covers touch/gesture/voice/VR/AR.
+axe-core: 0 violations, covers WCAG 2.0/2.1/2.2 + Section 508 + ADA. Detects ~57% automatically, zero false positives.
+
 ## Research Intelligence
 Design psychology: golden ratio spacing (0.382rem..4.236rem), Gestalt (proximity, similarity, figure/ground), Hick's (max 7 nav, 3 pricing), Miller's (3-6 cards).
 INP: <200ms p75. Break callbacks via scheduler.yield(), content-visibility:auto, batch DOM, <1500 nodes, CSS containment `contain:layout style paint`. transform+opacity only for 60fps.
-Performance: variable fonts (one WOFF2 replaces 4+ static files), CSS clamp() eliminates media queries for type, container queries replace many @media, `:has()` replaces JS for parent-based styling.
+Performance: variable fonts (one WOFF2 replaces 4+ static files, 80% fewer requests), CSS clamp() eliminates media queries for type, container queries replace many @media, `:has()` replaces JS for parent-based styling. Preprocessors now optional (CSS has variables, nesting, math, color functions).
+Stats: human-written content outperforms AI 94% of the time. 40-62% AI-generated code has security/design flaws. Poor design drives 38% of visitors away. 25% conversion increase with good CWV.
