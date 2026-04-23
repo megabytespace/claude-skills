@@ -1,6 +1,7 @@
 ---
 name: "API Design and Documentation"
 description: "Canonical owner of Hono v4.12.x RPC mode (RegExpRouter O(1) matching, 12KB), error envelope format, rate limiting patterns, pagination, OpenAPI spec generation, API versioning, webhook signature verification, and API documentation. Every API endpoint is type-safe, validated, documented, and production-ready. Factory pattern via createFactory() for reusable middleware."
+updated: "2026-04-23"
 ---
 # API Design and Documentation
 

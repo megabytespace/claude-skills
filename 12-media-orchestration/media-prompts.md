@@ -1,6 +1,7 @@
 ---
 name: "media-prompts"
 description: "Prompt templates for Ideogram logos, GPT Image hero shots, Sora video, and stock photo curation"
+updated: "2026-04-23"
 ---
 
 # Media Generation Prompt Templates

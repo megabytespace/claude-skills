@@ -1,6 +1,7 @@
 ---
 name: "Sentry Alert Rules"
 description: "Auto-configure Sentry alert rules at first deploy. Error spike detection, new issue alerts, unhandled rejection tracking, P95 latency monitoring, Slack integration, per-project rules, and deploy silence windows. All via Sentry API."
+updated: "2026-04-23"
 ---
 
 # Sentry Alert Rules

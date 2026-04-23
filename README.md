@@ -245,7 +245,7 @@ Every deploy must clear all gates. No exceptions. No overrides.
 
 ## Task Routing
 
-The router loads the smallest useful subset per task — never the full 91 docs. See [`_router.md`](_router.md) for the complete routing table.
+The router loads the smallest useful subset per task — never the full 93 docs. See [`_router.md`](_router.md) for the complete routing table.
 
 | When you say... | Skills loaded |
 |-----------------|---------------|

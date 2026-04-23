@@ -23,7 +23,7 @@ submodules:
 3. Brand positioning: how does this differentiate vs. the competitive field?
 
 ### Aggressive API/Service Discovery
-During planning, scan: MCP servers (05/mcp-integrations), API keys (05/shared-api-pool), Coolify services, AI APIs (OpenAI, Workers AI, Ideogram), communication APIs (Slack, Discord), automation hooks (Zapier, n8n, Inngest).
+During planning, scan: MCP servers (05/mcp-and-cloud-integrations), API keys (05/shared-api-pool), Coolify services, AI APIs (OpenAI, Workers AI, Ideogram), communication APIs (Slack, Discord), automation hooks (Zapier, n8n, Inngest).
 
 ## Research Protocol
 

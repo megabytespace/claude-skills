@@ -1,6 +1,7 @@
 ---
 name: "Drizzle ORM and Migrations"
 description: "Drizzle ORM v1.0 (beta.2) as the database abstraction layer for D1 (SQLite) and Neon (PostgreSQL). RQBv2, 10x faster introspection, schema-first design with auto-generated migrations, type-safe queries, and the Drizzle → D1/Neon setup pattern. Covers schema conventions, relation patterns, migration workflow, and seed data."
+updated: "2026-04-23"
 ---
 
 # Drizzle ORM and Migrations

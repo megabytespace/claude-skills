@@ -1,6 +1,7 @@
 ---
 name: "Image Optimization Pipeline"
 description: "Sharp for server-side image processing: resize, WebP/AVIF conversion, responsive srcset generation (320w-1920w), blur placeholders. Pipeline integrates with Uppy uploads via post-upload Worker, stores optimized variants in R2. Cloudflare Image Resizing as on-demand alternative."
+updated: "2026-04-23"
 ---
 
 # Image Optimization Pipeline

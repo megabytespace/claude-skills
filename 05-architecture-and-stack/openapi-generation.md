@@ -1,6 +1,7 @@
 ---
 name: "OpenAPI Generation"
 description: "Auto-generate OpenAPI specs from Hono routes using @hono/zod-openapi. Define routes with createRoute() + Zod schemas, serve Swagger UI via middleware, generate client SDKs with openapi-typescript-codegen. Versioned /api/v1/ prefix with spec at /doc endpoint."
+updated: "2026-04-23"
 ---
 
 # OpenAPI Generation
