@@ -21,6 +21,7 @@ submodules:
   - ui-completeness-sweep.md
   - semgrep-codebase-rules.md
   - e2e-accumulation.md
+  - evidence-collection.md
 ---
 
 # 07 — Quality and Verification

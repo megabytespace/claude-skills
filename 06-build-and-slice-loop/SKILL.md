@@ -18,6 +18,7 @@ submodules:
   - empty-states-and-loading.md
   - notification-system.md
   - file-uploads-and-storage.md
+  - chat-native-dashboard.md
   - rich-text-editor.md
   - data-tables.md
   - realtime-and-websockets.md
