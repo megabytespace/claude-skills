@@ -3,11 +3,11 @@ name: changelog-generator
 description: Auto-generates changelogs from conventional commits. Parses git log since last tag, groups by type, writes user-outcome-focused CHANGELOG.md entries.
 tools: Read, Bash, Grep, Write, Edit
 model: haiku
-permissionMode: auto
+permissionMode: default
 maxTurns: 10
 effort: low
-skills: ["08-deploy-and-runtime-verification"]
-memory: none
+skills: ["13-observability-and-growth"]
+memory: project
 background: true
 color: blue
 ---

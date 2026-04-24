@@ -8,7 +8,7 @@ permissionMode: plan
 maxTurns: 20
 skills: ["07-quality-and-verification"]
 effort: low
-memory: none
+memory: project
 color: green
 mcpServers: ["playwright"]
 ---

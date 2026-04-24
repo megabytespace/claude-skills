@@ -3,11 +3,11 @@ name: incident-responder
 description: Sentry-triggered incident response agent. Reads error events, traces to source code, proposes fixes, creates branches, and opens PRs with the fix.
 tools: Read, Bash, Glob, Grep, Write, Edit, mcp__sentry__*, mcp__github-mcp__*
 model: sonnet
-permissionMode: auto
+permissionMode: default
 maxTurns: 25
 memory: project
 effort: high
-skills: ["07-quality-and-verification"]
+skills: ["08-deploy-and-runtime-verification", "13-observability-and-growth"]
 background: true
 isolation: worktree
 color: red

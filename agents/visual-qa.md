@@ -7,8 +7,8 @@ model: opus
 permissionMode: plan
 maxTurns: 25
 skills: ["10-experience-and-design-system"]
-effort: max
-memory: none
+effort: xhigh
+memory: project
 color: pink
 mcpServers: ["playwright"]
 ---

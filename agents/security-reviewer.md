@@ -7,8 +7,8 @@ model: opus
 permissionMode: plan
 maxTurns: 25
 isolation: worktree
-memory: none
-effort: max
+memory: user
+effort: xhigh
 skills: ["07-quality-and-verification"]
 color: red
 ---

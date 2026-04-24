@@ -8,7 +8,7 @@ permissionMode: plan
 maxTurns: 20
 skills: ["09-brand-and-content-system"]
 effort: low
-memory: none
+memory: project
 color: orange
 mcpServers: ["playwright"]
 ---

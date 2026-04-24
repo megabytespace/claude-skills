@@ -4,11 +4,11 @@ description: Marketing copy, blog posts, and SEO content writer using Emdash bra
 tools: Read, Grep, Glob, WebSearch, WebFetch
 disallowedTools: Write, Edit
 model: haiku
-permissionMode: plan
+permissionMode: default
 maxTurns: 15
 skills: ["09-brand-and-content-system"]
 effort: low
-memory: none
+memory: project
 color: green
 ---
 You are a content writer for Emdash/Megabyte Labs projects. Write sharp, punchy, irreverent copy that follows the brand system.

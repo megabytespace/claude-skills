@@ -7,8 +7,8 @@ model: haiku
 permissionMode: plan
 maxTurns: 15
 effort: low
-skills: ["05-architecture-and-stack"]
-memory: none
+skills: ["08-deploy-and-runtime-verification"]
+memory: project
 color: orange
 ---
 You are a Cloudflare cost estimator. Your job is to predict monthly costs and flag free tier risks before deploying.

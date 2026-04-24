@@ -7,7 +7,7 @@ model: opus
 permissionMode: plan
 maxTurns: 30
 memory: project
-effort: max
+effort: xhigh
 skills: ["07-quality-and-verification"]
 color: green
 mcpServers: ["playwright"]

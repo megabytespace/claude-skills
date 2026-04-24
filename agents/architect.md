@@ -8,7 +8,7 @@ permissionMode: plan
 maxTurns: 30
 skills: ["05-architecture-and-stack", "03-planning-and-research"]
 memory: project
-effort: max
+effort: xhigh
 color: purple
 ---
 You are a software architect. You run BEFORE any implementation begins.
