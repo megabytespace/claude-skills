@@ -3,7 +3,7 @@
     <img width="148" alt="Emdash Skills" src="https://raw.githubusercontent.com/megabytespace/claude-skills/master/logo.png" />
   </a>
   <h1>Emdash Skills</h1>
-  <p><strong>Autonomous product-building OS for 30+ AI coding tools.<br/>One-line prompts → deployed products on Cloudflare Workers.</strong></p>
+  <p><strong>Autonomous product-building OS for 32+ AI coding tools.<br/>One-line prompts → deployed products on Cloudflare Workers.</strong></p>
 </div>
 
 <div align="center">
@@ -86,7 +86,7 @@ gh skill install megabytespace/claude-skills
 # Claude Code plugin
 claude plugin install megabytespace/claude-skills
 
-# npm (includes all 30+ platform variants)
+# npm (includes all 32+ platform variants)
 npm i @megabytespace/claude-skills
 
 # JSR

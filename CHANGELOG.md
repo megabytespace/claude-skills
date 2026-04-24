@@ -4,7 +4,7 @@
 
 ### Platform Variants (24 total)
 - Added 5 modern format directories: `.cursor/rules/` (MDC), `.windsurf/rules/` (trigger frontmatter), `.augment/rules/` (type frontmatter), `.github/instructions/` (applyTo), `.openhands/microagents/`
-- Total 30 platform variants auto-generated on push to master
+- Total 32 platform variants auto-generated on push to master (includes Devin + Goose)
 - Previous: Roo Code, Continue.dev, Trae, Tabnine, Kilo, Replit variants added in v7.2.0
 
 ### CI/CD
@@ -13,7 +13,7 @@
 - Actions upgraded v4→v6 (Node.js 20 deprecation avoidance)
 
 ### Packaging
-- All 30 platform variants included in npm + JSR packages
+- All 32 platform variants included in npm + JSR packages
 - bin/ scripts + .claude-plugin/ included in distribution
 - npm badge + JSR badge added to README
 
@@ -21,7 +21,7 @@
 - Complete cross-platform support table (24 variants with file paths and format notes)
 - Install methods: Claude plugin, npm, JSR, Codex, manual
 - Fixed doc count 93→94
-- Updated description: "30+ AI coding tools" (was "Claude Code")
+- Updated description: "32+ AI coding tools" (was "Claude Code")
 
 ### Community
 - Submitted to 9 awesome-list repos for discoverability
