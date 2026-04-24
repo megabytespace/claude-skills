@@ -1,0 +1,130 @@
+name: Validate & Publish Skills
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate skills
+        run: bash scripts/validate-skills.sh
+
+      - name: Check doc counts
+        run: |
+          EXPECTED=$(grep -o '[0-9]* reference docs' README.md | grep -o '[0-9]*')
+          ACTUAL=0
+          for dir in [0-9][0-9]-*/; do
+            COUNT=$(find "$dir" -maxdepth 1 -name '*.md' ! -name 'SKILL.md' | wc -l)
+            ACTUAL=$((ACTUAL + COUNT))
+          done
+          echo "Expected: $EXPECTED, Actual: $ACTUAL"
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "::error::Doc count mismatch: README says $EXPECTED but found $ACTUAL"
+            exit 1
+          fi
+
+      - name: Check SKILL.md submodule alignment
+        run: |
+          ERRORS=0
+          for dir in [0-9][0-9]-*/; do
+            SKILL="${dir}SKILL.md"
+            [ -f "$SKILL" ] || continue
+            # Extract submodule entries from frontmatter
+            IN_SUBMODULES=false
+            while IFS= read -r line; do
+              if echo "$line" | grep -q '^submodules:'; then
+                IN_SUBMODULES=true
+                continue
+              fi
+              if $IN_SUBMODULES; then
+                if echo "$line" | grep -q '^  - '; then
+                  FILE=$(echo "$line" | sed 's/^  - //')
+                  if [ ! -f "${dir}${FILE}" ]; then
+                    echo "::error::${SKILL}: submodule ${FILE} not found on disk"
+                    ERRORS=$((ERRORS + 1))
+                  fi
+                elif echo "$line" | grep -q '^---'; then
+                  break
+                elif ! echo "$line" | grep -q '^  '; then
+                  break
+                fi
+              fi
+            done < "$SKILL"
+          done
+          [ $ERRORS -eq 0 ] || exit 1
+
+  sync-cross-platform:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate cross-platform AGENTS.md
+        run: |
+          cat > AGENTS.md << 'AGENTSEOF'
+          # Emdash Skills — Agent Instructions
+
+          This repository contains 14 skill categories and 94 reference docs for autonomous product building.
+
+          ## Stack
+          CF Workers + Hono | Angular 21 + Ionic 8 + PrimeNG 21 | D1/Neon | Drizzle v1 | Clerk | Stripe | Inngest | Resend | Bun | Playwright v1.59+ | PostHog | Sentry
+
+          ## Usage
+          Load skills on demand via the skill router (`_router.md`). Each category has a `SKILL.md` with submodules listed in frontmatter.
+
+          ## Key Files
+          - `CONVENTIONS.md` — shared constants, patterns, stack config
+          - `_router.md` — routes prompts to smallest useful skill subset
+          - `SKILL_PROFILES.md` — default bundles by product type (SaaS, API, Marketing, etc.)
+          - `llms.txt` — LLM-optimized index of all skills
+
+          ## For AI Coding Tools
+          This repo is compatible with the agentskills.io open standard. Skills work in Claude Code, OpenAI Codex, Cursor, GitHub Copilot, VS Code, Gemini CLI, and 30+ other tools.
+
+          Install: `claude plugin install megabytespace/claude-skills`
+          AGENTSEOF
+
+      - name: Generate .cursorrules
+        run: |
+          cat > .cursorrules << 'CURSOREOF'
+          # Emdash Skills for Cursor
+
+          Load CONVENTIONS.md for stack defaults. Load _router.md for skill routing.
+          14 categories (01-14), 94 reference docs, 18 agents.
+
+          ## Stack
+          CF Workers+Hono | Angular 21+Ionic 8+PrimeNG 21 | D1/Neon | Drizzle v1 | Clerk | Stripe | Inngest | Resend | Bun | Playwright v1.59+ | PostHog | Sentry
+
+          ## Rules
+          - TypeScript strict, never `any`, prefer `interface` over `type`
+          - Hono inline handlers for RPC type inference
+          - Zod validation on all inputs
+          - TDD: failing test first, Playwright 6 breakpoints
+          - Dark-first design, #060610 bg, #00E5FF accent
+          - Deploy to CF Workers, purge CDN after every deploy
+
+          See CONVENTIONS.md for full patterns.
+          CURSOREOF
+
+      - name: Generate .windsurfrules
+        run: cp .cursorrules .windsurfrules
+
+      - name: Commit cross-platform files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add AGENTS.md .cursorrules .windsurfrules
+          git diff --cached --quiet && echo "No changes" || git commit -m "chore: sync cross-platform rule files [skip ci]"
+          git push || true
