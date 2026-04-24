@@ -24,6 +24,16 @@
 
 <br/>
 
+### When to Use
+
+| Building... | Skills Load | Install |
+|---|---|---|
+| **SaaS product** | 01-OS → 02-Brief → 05-Arch → 06-Build → 07-QA → 08-Deploy + all agents | `claude plugin install megabytespace/claude-skills` |
+| **API / backend** | 01-OS → 05-Arch → 06-Build → 08-Deploy → 13-Observability | `npm i @megabytespace/claude-skills` |
+| **Marketing site** | 01-OS → 09-Brand → 10-Design → 11-Motion → 12-Media | `npm i @megabytespace/claude-skills` |
+| **Features on existing project** | 01-OS → 06-Build → 07-QA (skill router auto-selects from context) | `claude plugin install megabytespace/claude-skills` |
+| **Just rules for your AI tool** | No skills — use a platform variant file directly | See [30 variants](#cross-platform-support-30-variants) below |
+
 ## How It Works
 
 ```
