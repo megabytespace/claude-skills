@@ -206,6 +206,22 @@ if (!hasFeature) return c.json({ error: 'Upgrade required', code: 'ENTITLEMENT_M
 ```
 Use for plan-tier feature gating instead of hardcoded plan checks. Auto-updates when plan changes — no webhook needed for feature access.
 
+## Stripe Agentic Commerce (ACP — 2026)
+Agents can discover products, build carts, authorize payments via standardized flows. Launch partners: OpenAI, Perplexity. Pattern: agent calls `stripe.checkout.sessions.create()` on behalf of user with `ui_mode: 'embedded'` → user confirms in secure Stripe-hosted UI → agent receives confirmation. No agent ever handles raw card data.
+```typescript
+// Agent-initiated checkout (user confirms in Stripe UI)
+const session = await stripe.checkout.sessions.create({
+  mode: 'payment',
+  ui_mode: 'embedded',
+  line_items: [{ price: agentSelectedPriceId, quantity: 1 }],
+  return_url: `${origin}/agent-purchase-complete?session_id={CHECKOUT_SESSION_ID}`,
+});
+// Return session.client_secret to agent for user confirmation
+```
+
+## Metronome (Acquired Jan 2026)
+Multidimensional metering for AI/usage-based billing at scale. Custom contracting, usage-based pricing with complex aggregation (per-token, per-seat, per-API-call combos). For AI-native SaaS: track GPU seconds, tokens, API calls, storage — all in one metering pipeline. Supersedes simple Billing Meter API for complex scenarios.
+
 ## Key Locations
 - Stripe API key: shared key pool (05/shared-api-pool)
 - Webhook secret: wrangler secret per project

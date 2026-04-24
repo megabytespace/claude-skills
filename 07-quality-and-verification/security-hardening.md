@@ -51,7 +51,7 @@ const CSP = [
 | A09 | Security Logging/Alerting | Sentry captures all errors |
 | A10 | Exceptional Conditions (NEW) | try/catch all, onError handler, graceful degradation |
 
-Notable 2025 changes: Supply chain elevated to #3. Exceptional condition handling added at #10. Misconfiguration moved to #2.
+Notable 2025 changes: Supply chain elevated to #3 (expanded from A06:2021 Vulnerable Components). Exceptional condition handling added at #10. Misconfiguration moved to #2 (up from #5). SSRF consolidated into A01. Injection dropped to #5. **Shai-Hulud Worm (npm, Sep 2025):** self-replicating worm compromised npm maintainer accounts, 500+ downstream packages — reinforce lockfile auditing and SRI.
 
 ## Rules
 1. Zod on ALL input (body, query, params, headers). No unvalidated input touches logic.
