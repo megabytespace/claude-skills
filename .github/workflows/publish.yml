@@ -292,9 +292,10 @@ jobs:
           # JetBrains AI Assistant (separate from Junie)
           mkdir -p .aiassistant/rules
           sed 's/for Cursor/for JetBrains AI Assistant/' .cursorrules > .aiassistant/rules/emdash-skills.md
-          # Kiro (AWS)
+          # Kiro (AWS) — requires inclusion frontmatter
           mkdir -p .kiro/steering
-          sed 's/for Cursor/for Kiro/' .cursorrules > .kiro/steering/emdash-skills.md
+          printf -- '---\ninclusion: auto\n---\n\n' > .kiro/steering/emdash-skills.md
+          sed 's/for Cursor/for Kiro/' .cursorrules >> .kiro/steering/emdash-skills.md
           # Void Editor
           mkdir -p .void/rules
           sed 's/for Cursor/for Void/' .cursorrules > .void/rules/emdash-skills.md

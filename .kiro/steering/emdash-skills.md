@@ -1,3 +1,7 @@
+---
+inclusion: auto
+---
+
 # Emdash Skills for Kiro
 
 Load CONVENTIONS.md for stack defaults. Load _router.md for skill routing.
