@@ -6,7 +6,8 @@
     "name": "Brian Zalewski",
     "url": "https://megabyte.space"
   },
-  "homepage": "https://github.com/megabytespace/claude-skills",
+  "type": "module",
+  "homepage": "https://claude.megabyte.space",
   "repository": {
     "type": "git",
     "url": "https://github.com/megabytespace/claude-skills.git"
