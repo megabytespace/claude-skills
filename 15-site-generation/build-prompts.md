@@ -78,6 +78,16 @@ The original site's content is the business's accumulated SEO equity and institu
 - When combining thin pages: content merges into a richer page, old URLs get 301s
 - Word count of new site should MATCH OR EXCEED original (not 50% — 100%+)
 
+### URL Slug Hygiene (***ALWAYS CLEAN — NEVER COPY CMS GARBAGE***)
+Original CMS paths often contain garbage suffixes, numeric IDs, or folder artifacts (e.g. `/the-mens-dining-hall-1`, `/volunteer-1`, `/new-folder-1`). NEVER use these as primary routes.
+- Clean the slug: strip trailing numbers added by CMS (`-1`, `-2`), remove articles (`the-`), remove `new-folder-*` artifacts
+- `/the-mens-dining-hall-1` → primary route: `/services/mens-dining-hall`, redirect from original path
+- `/volunteer-1` → primary route: `/volunteer`, redirect from original path
+- `/new-folder-1` → primary route: `/services`, redirect from original path
+- Sub-services get nested routes: `/services/health-clinic`, `/services/womens-center`
+- Use a Redirect component (navigate with replace:true) for SPA client-side 301 equivalents
+- Original ugly paths MUST still resolve via redirect — never 404 on a previously-indexed URL
+
 ### URL Preservation (***NON-NEGOTIABLE***)
 Parse _scraped_content.json for all original URL paths. Every original URL must resolve:
 - Same path → actual page (preferred): `/about-us` → About page at `/about-us`
@@ -94,6 +104,22 @@ Parse _scraped_content.json for all original URL paths. Every original URL must 
   One redirect per line. `FROM` is the original path, `TO` is the new path, `STATUS` is 301 (permanent). For SPAs with client-side routing, also add a catch-all `/* /index.html 200` as the LAST line (Cloudflare Pages SPA fallback). Redirects are evaluated top-to-bottom, first match wins.
 - Validate: every URL from original sitemap.xml returns 200 or 301 — never 404
 - Build gate: compare original sitemap URLs vs new sitemap + redirects, fail if any URL unaccounted
+
+### Media Acquisition (***MANDATORY — RUNS IN ALL BUILD MODES***)
+Media enrichment is NOT optional. Whether running in container, via prompt, or in manual Claude Code session — media acquisition MUST happen. A site with no images is not a site. Read ~/.agentskills/15-site-generation/media-acquisition.md for full strategy.
+
+**The njsk.org text-only-site incident:** The first build shipped a site with ZERO images because media acquisition was treated as a Phase 0 container-only step. It is a HARD GATE for ALL builds.
+
+**Manual/prompt build media steps (***FIRST PROMPT — BEFORE ANY CODE***):**
+1. **Extract images from original site:** WebFetch every page, extract ALL img src URLs. Download each to public/images/. njsk.org had at least: banner logo, food service photos (IMG_3035.jpg), kitchen photos (Resized-20180809-114452.jpeg), plus Squarespace gallery images. EVERY image on the original site MUST be downloaded and used.
+2. **Google image search:** Search "{business_name} {city}" for 10-15 relevant photos. Use WebFetch to find image URLs from Google CSE or direct search.
+3. **Stock photo APIs:** If API keys available (UNSPLASH_ACCESS_KEY, PEXELS_API_KEY), query for business-type-specific photos. Download 5-10 to public/images/.
+4. **AI image generation:** If OPENAI_API_KEY available, generate 3-5 originals via GPT Image 1.5 (hero background, service illustrations, atmospheric textures). If not available, use CSS gradients with brand colors as hero backgrounds — but NEVER ship pages with no visual content at all.
+5. **Video embeds:** Search YouTube for "{business_name}" — embed any official videos. Search Pexels for business-type B-roll.
+6. **Image placement:** Hero section MUST have a background image or photo. Every service card needs an image. About page needs at least 2 photos. Blog posts with photos on original site must have those photos. Gallery/photo section if 5+ images available.
+7. **Hard gate:** Count images in public/images/ or equivalent. If <10 unique images → build is NOT complete. If <5 → build has NOT started media acquisition.
+
+**For non-profit/church sites specifically:** Extract volunteer group photos from blog posts (these are often the most emotionally compelling images), download event photos, kitchen/dining hall interior shots. These organizations rely on emotional connection — text-only sites kill donations.
 
 ### Design System (***skill 10 — MANDATORY***)
 Read ~/.agentskills/10-experience-and-design-system/SKILL.md for full design system.

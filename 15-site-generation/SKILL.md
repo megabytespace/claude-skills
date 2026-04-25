@@ -45,14 +45,20 @@ A perfect website CANNOT be created with a single LLM call. It requires a Princi
 ## Pipeline Overview
 
 ```
-Phase 0: Pre-Research (Worker, no Claude Code)
+Phase 0: Pre-Research + Media Acquisition (***RUNS IN ALL BUILD MODES***)
   → Google Places, website scraping, social verification, brand extraction, media discovery
+  → Download ALL images from original website (logo, photos, blog images)
+  → Stock photos via Unsplash/Pexels/Pixabay APIs
+  → AI-generated originals via GPT Image 1.5 / Stability AI
+  → YouTube/Pexels video embeds
   → Output: _research.json, _scraped_content.json, _assets/ folder with all images
+  → HARD GATE: <10 images in assets/ = build NOT complete
 
-Phase 1: Single Claude Code Prompt (Container)
-  → Reads all _ prefixed context files
+Phase 1: Single Claude Code Prompt (Container OR manual session)
+  → Reads all _ prefixed context files (or performs Phase 0 inline if manual)
   → Customizes pre-installed Vite+React+Tailwind+shadcn/ui template
   → Builds 4-8 page site with real content, real images, real brand
+  → Clean URL slugs (never copy CMS garbage like -1 suffixes)
   → Runs npm run build → node inspect.js → fixes issues → rebuilds
   → Uploads all files to R2 via bundled upload script
 
@@ -60,6 +66,8 @@ Phase 2: Post-Build Verification (Worker)
   → Screenshot via microlink.io → GPT-4o vision scoring
   → D1 status update → email notification
 ```
+
+***CRITICAL: In manual/prompt-based builds (no container), Phase 0 runs INLINE as the first step of Claude Code's work. The agent MUST: (1) WebFetch original site pages and extract all image URLs, (2) curl/download images to public/, (3) search for stock photos and download, (4) generate AI images if API keys available — ALL BEFORE writing any React code. A text-only site is a failed build. See build-prompts.md "Media Acquisition" section.***
 
 ## Single-Prompt Architecture
 
