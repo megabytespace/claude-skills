@@ -97,8 +97,85 @@ R2 credentials: CF_API_TOKEN, CF_ACCOUNT_ID, R2_BUCKET_NAME, SITE_SLUG, SITE_VER
 
 ## Credit Discipline (***NON-NEGOTIABLE***)
 
-Never waste API credits on speculative builds. If error: reduce to simplest reproducible state first. Fix issues as separate minimal tests. Only trigger full builds when pipeline proven working. Each Claude Code prompt ~$0.50-2.00. Each full build ~$3-8. Treat credits as scarce.
+Never waste API credits on speculative builds. If error: reduce to simplest reproducible state first. Fix issues as separate minimal tests. Only trigger full builds when pipeline proven working.
 
 **Two separate budgets — don't confuse them:**
 1. **GPT-4o vision QA: ***$1 HARD CAP.*** ** Image profiling ~$0.15, logo pick ~$0.05, inspect.js ~$0.03/round, post-deploy QA ~$0.10-0.20. Homepage/ATF gets vision priority. Total ~$0.35-0.45 typical.
 2. **Media generation/acquisition: $0.50-2.00 (GOOD spend).** Ideogram logos ~$0.05, GPT Image 1.5 originals ~$0.04/each (5-10 per site), Stability textures ~$0.03/each, stock APIs (free tiers). This spend CREATES the content that makes sites convert — never cap it below what's needed for 30-50 images + 3-5 videos per site.
+
+## Unit Economics at Scale (***1M+ SITES***)
+
+### Per-Site Cost Model (current → optimized)
+
+| Component | Current | At Scale | Notes |
+|-----------|---------|----------|-------|
+| **Code generation** | $0.50-2.00 (Claude Code) | $0.02-0.05 (Workers AI) | Llama 3.3 70B for template fill, Claude only for complex/custom |
+| **Research APIs** | ~$0.01 (Google Places) | ~$0.005 | Batch + cache nearby businesses, reuse geo data |
+| **Web scraping** | ~$0 (fetch) | ~$0 | CF Workers fetch, zero cost |
+| **Image profiling** | ~$0.15 (GPT-4o) | ~$0.01 (Workers AI) | Llama Vision on edge, batch profiling |
+| **Logo generation** | ~$0.05 (Ideogram) | ~$0.05 | No cheap alternative for quality logos |
+| **AI images** | ~$0.30 (5-8 GPT Image) | ~$0.10 (Workers AI SDXL) | Edge inference, bulk pricing, category caching |
+| **Stock images** | ~$0 (free tiers) | ~$0 | Unsplash/Pexels/Pixabay unlimited for most uses |
+| **Video discovery** | ~$0 (YouTube embed) | ~$0 | YouTube/Pexels embeds, no storage |
+| **Vision QA** | ~$0.35 (GPT-4o) | ~$0.02 (Workers AI) | Llama Vision for QA, GPT-4o only for homepage ATF |
+| **In-container inspect** | ~$0.03 (GPT-4o) | ~$0.005 (Workers AI) | Edge model for build validation |
+| **R2 storage** | ~$0 (free egress) | ~$0.001/site/mo | ~5MB/site × 1M = 5TB, $0.015/GB/mo |
+| **D1 database** | ~$0 | ~$0.001/site/mo | Row storage minimal |
+| **Container compute** | ~$0.10 (CF Container) | ~$0.02 | Pre-warm pools, shorter runs with template engine |
+| **DNS/routing** | ~$0 | ~$0 | Wildcard *.projectsites.dev |
+| **TOTAL** | **$1.50-4.50** | **$0.25-0.40** | 85-90% cost reduction at scale |
+
+### Scale Optimization Strategies
+
+**Tier 1: Template Engine (80% of sites, $0.10-0.20/site)**
+Most local businesses (restaurant, salon, medical, legal) are structurally identical. Pre-build 18 category templates as complete React apps. Worker fills data slots (business name, hours, phone, colors, images) via string replacement — NO LLM needed. Workers AI Llama 3.3 70B generates copy (about text, service descriptions, FAQs) at $0.001/1K tokens. Reserve Claude Code for custom/complex sites only.
+
+**Tier 2: Workers AI First (15% of sites, $0.20-0.40/site)**
+Sites needing layout customization beyond templates. Workers AI generates component JSX (not full site). Llama Vision replaces GPT-4o for image profiling and QA. Edge inference = zero network latency, included in Workers Paid plan.
+
+**Tier 3: Claude Code (5% of sites, $1.50-4.00/site)**
+Complex multi-page sites, custom designs, SaaS, portfolios with unique layouts. Full container build. Worth the cost — these are premium-priced sites.
+
+### Media Caching (***MASSIVE SAVINGS***)
+
+**Category media pools:** Pre-generate and cache 500+ stock-quality images per business category (restaurant interiors, salon styling, dental offices, law offices, etc.). Store in R2 `media-pools/{category}/`. Each new site draws from pool + adds discovered originals. Amortized cost: $0.00/site for stock imagery after pool is built.
+
+**Logo template caching:** For businesses without logos, pre-generate 50 logo templates per category (text-based with industry icons). Workers AI picks best match → Ideogram refines with business name. Cost drops from $0.05 to ~$0.02/logo.
+
+**Texture/pattern library:** Pre-generate 200 abstract backgrounds, gradients, geometric patterns in brand-neutral colors. Apply CSS color filter per site. Cost: $0 after initial generation.
+
+### API Rate Limit Strategy at Scale
+
+| API | Free Tier | Paid | Strategy |
+|-----|-----------|------|----------|
+| Google Places | 0 (pay per req) | $17/1K requests | Cache aggressively, batch nearby |
+| Unsplash | 50/hr | Unlimited (apply) | Apply for production API, cache by query |
+| Pexels | 200/hr | 200/hr | Pool across Workers, queue system |
+| Pixabay | 100/hr | 100/hr | Same pooling |
+| Ideogram | pay per gen | Volume pricing | Batch logo generation via Queues |
+| GPT Image | pay per gen | Batch API (50% off) | Use Batch API for all image gen |
+| Workers AI | 10K neurons free | Included in paid | DEFAULT for all inference at scale |
+
+### Batch Processing Architecture
+
+```
+CF Queue → Fan-Out Workers → Parallel Phases:
+  Phase 0: Research Worker (Google Places + scrape) → _research.json to R2
+  Phase 1: Media Worker (stock APIs + AI gen + profiling) → assets/ to R2  
+  Phase 2: Build Worker (template fill OR Workers AI OR Container)
+  Phase 3: QA Worker (a11y tree + optional vision) → score to D1
+  Phase 4: Publish Worker (DNS + CDN purge + D1 status)
+```
+
+Queue-based: 1000 concurrent builds, auto-retry on failure, dead letter queue for manual review. Each phase independent → massive parallelism. Target: 10K sites/hour sustained, 100K sites/day burst.
+
+### Break-Even Analysis
+
+| Volume | Cost/Site | Total | Revenue @ $50/site | Margin |
+|--------|-----------|-------|---------------------|--------|
+| 1K | $2.50 | $2,500 | $50,000 | 95% |
+| 10K | $1.00 | $10,000 | $500,000 | 98% |
+| 100K | $0.40 | $40,000 | $5,000,000 | 99.2% |
+| 1M | $0.30 | $300,000 | $50,000,000 | 99.4% |
+
+At 1M sites, infrastructure + API costs are <1% of revenue. The bottleneck is customer acquisition, not unit economics.

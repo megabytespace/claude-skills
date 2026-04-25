@@ -26,7 +26,7 @@ updated: "2026-04-24"
 | seo | 0.85 | JSON-LD, meta, canonical, OG, sitemap, keyword placement |
 | performance | 0.85 | <100KB HTML, lazy images, font preconnect, no render blocking |
 | brand_consistency | 0.85 | Matches research colors/fonts, logo prominent, NAP consistent |
-| media_richness | 0.85 | 15+ unique images, no broken, no duplicates, proper sizing |
+| media_richness | 0.85 | 30+ unique images, 3-5 videos, no broken, no duplicates, proper sizing |
 | text_contrast | 0.85 | 4.5:1 body, 3:1 large text, no washed-out combinations |
 
 Overall must exceed 0.90 to auto-publish. Below 0.85 any dimension → fix required.
