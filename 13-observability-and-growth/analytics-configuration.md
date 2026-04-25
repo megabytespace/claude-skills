@@ -102,8 +102,19 @@ script-src: https://www.googletagmanager.com https://www.google-analytics.com ht
 connect-src: https://www.google-analytics.com https://analytics.google.com https://*.posthog.com https://*.sentry.io
 ```
 
-## Sentry Auto-Provision (***MANDATORY***)
-Every project gets Sentry from day one. Missing @sentry/cloudflare or @sentry/node → install+wrap+create project via mcp__sentry__create_project (org:megabyte-labs, team:megabyte-labs, platform:javascript) → set SENTRY_DSN via `wrangler secret put`. Full-stack traces: tracesSampleRate, app.onError()→captureException with route+userId tags, breadcrumbs before risky ops, SENTRY_RELEASE for deploy tracking. Same auto-provision applies to PostHog+GA4/GTM — if missing, add in same prompt.
+## Full Analytics Auto-Provision (***MANDATORY — ALL THREE***)
+
+### Sentry (Error Tracking + Performance)
+Every project gets Sentry from day one. Missing @sentry/cloudflare (Workers) or @sentry/node → install SDK + wrap entry point + create project via `mcp__sentry__create_project` (org:megabyte-labs, team:megabyte-labs, platform:javascript) → set SENTRY_DSN via `wrangler secret put`. Full-stack traces: tracesSampleRate, app.onError()→captureException with route+userId tags, breadcrumbs before risky ops, SENTRY_RELEASE for deploy tracking.
+
+### PostHog (Product Analytics + Feature Flags + Session Recording)
+Every HTML page gets PostHog snippet. Config: `persistence:'memory'` (cookie-free, no GDPR banner), `capture_pageview:true`, `capture_pageleave:true`, `autocapture:true`. CSP: script-src+connect-src for PostHog API host. PostHog project key stored as env var POSTHOG_KEY or inline for static HTML. Self-hosted preferred (posthog.megabyte.space) but us.i.posthog.com acceptable for cloud. Events: page_viewed, cta_clicked, form_submitted, donate_click, newsletter_signup, scroll_depth.
+
+### GA4/GTM (Marketing Analytics + Tag Management)
+Every HTML page gets GTM container (head script + noscript iframe after body). GTM container ID: GTM-W746ZTWT (Megabyte Labs). CSP: script-src googletagmanager.com+google-analytics.com, connect-src analytics.google.com+region1.google-analytics.com, img-src googletagmanager.com+google-analytics.com. GA4 configured inside GTM (never standalone). Custom dimensions over separate events. 14-month retention. Google Signals enabled.
+
+### Enforcement
+Missing ANY of the three → add in same prompt. No page ships without all three firing. Every action: GA4 event + PostHog event + Sentry breadcrumb. CSP must allow all three domains. Verify in browser DevTools Network tab before marking deploy as done.
 
 ## Verification Checklist
 GTM loads, GA4 fires (DebugView), PostHog captures pageviews (Live Events), Sentry DSN set+errors captured (Sentry Issues dashboard), custom events fire on interactions, feature flags resolve, session recording captures, no duplicate events, CSP allows all domains, scroll depth fires at milestones, no cookies set (self-hosted PostHog).
