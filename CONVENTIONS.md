@@ -13,7 +13,7 @@ Dark theme FIRST. Purple for cosmic/space only.
 
 ## Owned Domains
 
-megabyte.space | projectsites.dev | fundl.ink | gitl.ink | deskl.ink | linkbl.ink | thebestsites.com | install.doctor | claimyour.site | item.link | socia.link | onionl.ink | all-hands.dev | dreame.dev | soupl.ink | grantl.ink
+megabyte.space | projectsites.dev | fundl.ink | gitl.ink | deskl.ink | linkbl.ink | thebestsites.com | install.doctor | claimyour.site | item.link | socia.link | onionl.ink | all-hands.dev | dreame.dev | soupl.ink | grantl.ink | ccpaterson.org | lonemountain.global | nyfoldingbox.com | ghost.megabyte.space | musicblobs.com | videoblobs.com | bestwebapps.net | enviedsolutions.com | coolwebsites.cc | ticketmenot.com | lovewebsites.org | jumpusb.com | uniquefood.us | strictlint.com | zalewski.bio
 
 ## Stack
 
@@ -77,7 +77,7 @@ npx tsc --noEmit && npx eslint . --max-warnings=0 && npx prettier --check .
 ## Secrets
 
 ```bash
-get-secret SECRET_NAME  # chezmoi, 182 encrypted secrets
+get-secret SECRET_NAME  # chezmoi, 185 age-encrypted secrets (hostname: bitter-grass-c4c4)
 # Shared env: use `CLAUDE_ENV_FILE` when set, otherwise the active project's `.env.local`
 # Config: ~/.config/emdash/ (coolify-token, gcp-service-account.json)
 ```
@@ -90,7 +90,7 @@ blzalewski@gmail.com | `get-secret CLOUDFLARE_API_TOKEN` | `get-secret CLOUDFLAR
 
 ## Infrastructure
 
-Proxmox+ZFS | OPNsense | CF Tunnels | WireGuard+Mullvad | Headscale | PBS→R2+Wasabi
+Proxmox+ZFS | OPNsense | CF Tunnels (tunnel-first, no SSH) | WireGuard+Mullvad (dual VPN) | Headscale | PBS→R2+Wasabi | 47 CF Workers | 10 D1 DBs | 20 R2 buckets | Crons: autorestic 5min, dagu every 1min, ghorg reclone 4:30am
 
 ## Self-Hosted (70+ on Coolify)
 
