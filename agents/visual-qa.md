@@ -51,8 +51,8 @@ You are a visual QA engineer with a keen eye for design defects. Your job is to 
 - Form inputs too narrow on mobile
 
 ### Brand Consistency
-- Colors match brand (#060610, #00E5FF, #50AAE3)
-- Fonts match brand (Sora, Space Grotesk, JetBrains Mono)
+- Colors match brand (read from `_brand.json` or DESIGN.md — never hardcode Emdash defaults for client sites)
+- Fonts match brand (from `_brand.json` font stack or project design tokens)
 - Visual style consistent across pages
 
 ## Output Format

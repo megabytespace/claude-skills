@@ -58,5 +58,27 @@ Runs after `npm run build`. Checks: (1) dist/ exists with index.html (2) no SITE
 
 Button (variants: default/outline/ghost/link) | Card (header/content/footer) | Badge | Dialog | Sheet (mobile nav) | Carousel (testimonials/gallery) | Accordion (FAQ) | Tabs (services) | Avatar (team) | Separator | ScrollArea. All styled via CSS variables matching brand tokens.
 
+## Local Business Component Patterns (***CRITICAL***)
+
+Local business sites need components SaaS templates don't have. These are pre-built in `template/src/components/local/`:
+
+**HeroWithPhoto.tsx:** Full-viewport hero with actual business photo (not abstract gradient). `assets/hero-*` image fills background with `object-fit:cover`, dark overlay `rgba(0,0,0,0.55)`, business name in brand font, tagline from `_research.json.marketing.hero_slogans[0]`, twin CTAs: "Call Now" (`tel:` primary gradient) + "Get Directions" (Maps link secondary). Mobile: CTAs stack full-width, sticky bottom bar with phone icon persists on scroll.
+
+**ServiceCards.tsx:** Grid of services from `_research.json.offerings.services[]`. Each card: relevant image from `_image_profiles.json` (matched by keyword), service name, 2-sentence description, price range (if available). Glassmorphism: `bg-white/5 backdrop-blur-md border-white/10`. Hover: border-brand-primary, shadow-glow. Mobile: horizontal scroll carousel.
+
+**TestimonialCarousel.tsx:** Google Places reviews from `_research.json.trust.reviews[]`. Each: star rating (filled SVG stars), reviewer name, date, truncated text with "Read more on Google →" link. Auto-advances 5s, pause on hover. Min 3 reviews or fallback to CTA "Be the first to review us →" with Google review link.
+
+**MapEmbed.tsx:** Google Maps iframe from `_research.json.operations.geo` (lat/lng). 100% width, 400px height, rounded corners, `loading="lazy"`. Below map: formatted address (clickable → directions), hours grid (today highlighted in brand-primary), parking/transit info if available. Dark mode map: `&style=feature:all|element:geometry|color:0x212121`.
+
+**StickyPhoneCTA.tsx:** Mobile-only (`@media (max-width: 768px)`). Fixed bottom bar: brand-primary background, phone icon + "Call Now" centered, `tel:` link. `z-index:50`. Hides on scroll-down, shows on scroll-up (IntersectionObserver on footer hides it when footer visible). Min 44px touch target.
+
+**NAPFooter.tsx:** Name, Address, Phone block matching JSON-LD exactly. Logo, business name, full address (Google Maps link), phone (`tel:`), email (`mailto:`), hours (collapsible on mobile), social icons row. Schema.org LocalBusiness microdata attributes on each element. This block is THE source of truth for NAP consistency.
+
+**TrustBadges.tsx:** Horizontal row of verification badges from `_research.json.trust` + `_citations.json`. Google rating badge (star + number), BBB rating, industry certifications, "Licensed & Insured" if applicable. Lazy-loaded images from `assets/badges/`. Placed below hero and in footer.
+
+**ReviewCTA.tsx:** "Love our service? Leave us a review!" card with Google review QR code (`assets/review-qr.svg`) and direct link button. Placed on thank-you page and contact page. Star-gate logic: 4+ stars → Google, <3 → private feedback form.
+
+**GalleryGrid.tsx:** Masonry layout of ALL images in `assets/`. Full-width section. Lightbox on click (Dialog component). Lazy-loaded, srcset for responsive. Caption from `_image_profiles.json.description`. Min 12 images visible without scrolling on desktop.
+
 ## Dep Versions (Pinned)
 react 19 | react-router 7 | tailwindcss 4 | @shadcn/ui latest | lucide-react latest | vite 6 | typescript 5.8. Container runs `bun install` during image build — deps are cached, not fetched per build.

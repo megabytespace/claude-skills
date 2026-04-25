@@ -85,6 +85,30 @@ cursor:pointer, hover state, focus-visible (3px cyan, 2px offset), active (scale
 ## Motion (CSS-Native 2026)
 View Transitions API (baseline all browsers Oct 2025): `@view-transition { navigation: auto; }` for full-page. Named: `view-transition-name: match-element` (Chrome 137+) auto-assigns from element identity — no manual names for list items. Nested groups (Chrome 140+) for clipping/3D. `<300ms total. Scroll-driven: `animation-timeline: scroll(root block)` | `animation-timeline: view()`, off main thread, `animation-range: entry 0% cover 50%`. `@starting-style` for DOM-insert animations (modals, toasts, drawers) — replaces JS add-class-on-mount. Container scroll-state: `@container scroll-state(stuck: top)` for sticky headers, `@container scroll-state(snapped: x)` for carousels. `::scroll-button()` / `::scroll-marker` for scroll UI (Chrome 135+). `prefers-reduced-motion` on ALL animations (mandatory — see skill 11).
 
+## Local Business Design Patterns (***SITE GENERATION***)
+
+Local business sites have fundamentally different design needs than SaaS. These patterns are NON-NEGOTIABLE for all generated local business sites:
+
+**Hero:** Full-viewport REAL business photo (never abstract gradient). Dark overlay 55-65% opacity. Business name in brand heading font at `--text-hero` scale. Tagline/specialty below. Twin CTAs: "Call Now" (primary, `tel:` link, phone icon) + "Get Directions" (secondary, Maps link, map-pin icon). Rating badge overlay (Google stars + "X reviews"). On mobile: CTAs full-width stacked, rating moves above CTAs.
+
+**Sticky Mobile CTA Bar:** Fixed bottom, 56px height, brand-primary bg. Phone icon + "Call Now" centered. `position:fixed; bottom:0; z-index:50`. Hides when footer in viewport (IntersectionObserver). Touch target 44px+. This is THE highest-converting element on local business sites — 60%+ of mobile conversions come from sticky CTAs.
+
+**Service Cards Section:** Auto-fill grid from research data. Each card: relevant image (from `_image_profiles.json` keyword match), service name, 2-line description, price range (if available), "Learn More" or "Book Now" CTA. Glassmorphism style: `bg-white/5 backdrop-blur-md border border-white/10`. 3-col desktop, 1-col mobile with horizontal scroll peek.
+
+**Google Maps Integration:** Dark-styled iframe embed (`&style=feature:all|element:geometry|color:0x212121`). Below: address (clickable directions link), hours grid (today's hours highlighted brand-primary), phone, email. Container query responsive — sidebar on wide, stacked on narrow.
+
+**Trust Section:** Horizontal badge row immediately after hero. Google rating (star SVG + number + "X reviews"), BBB rating, industry certs, "Licensed & Insured", years in business counter. Subtle bg-secondary band. This section builds instant credibility — local customers check these first.
+
+**Testimonials:** Google Places reviews displayed as cards. Star rating (brand-colored fill), reviewer name, date, text (truncated 150 chars with "Read more on Google →"). Carousel on mobile, grid on desktop. Min 3 reviews or fallback to review CTA.
+
+**Gallery:** Masonry grid of ALL business photos. Full-bleed section, no side padding. Lightbox on click. Lazy-loaded. Caption from image profiles. This section should feel like walking into the business — immersive and media-rich. Min 12 images visible without scrolling.
+
+**NAP Footer:** Business name + logo, full address (Google Maps deep link), phone (`tel:`), email (`mailto:`), hours (collapsible accordion on mobile), social icons. MUST match JSON-LD exactly — divergence hurts rankings. This is the canonical source; header phone/address link to this section.
+
+**Before/After (optional):** CSS slider (`<input type="range">`) showing transformation (salons, contractors, auto body, landscaping). Dramatic visual proof of service quality. Uses actual client photos from Places/uploads.
+
+**Booking Integration:** If `_research.json.operations.booking_url` exists: prominent "Book Online" CTA in hero + nav + floating button. Embeds or links to: OpenTable (restaurant), Calendly/Acuity (professional), Vagaro/Booksy (salon), Mindbody (fitness). Never build custom booking — link to what they already use.
+
 ## Responsive
 Mobile 375px: no h-scroll, 44px targets, readable, hamburger, full-width buttons. Desktop 1280px: centered, multi-column, hover states, 65ch max. 6 breakpoints: 375,390,768,1024,1280,1920.
 

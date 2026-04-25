@@ -31,6 +31,26 @@ Psychology: reciprocity (teach), social proof near CTAs, authority (depth/number
 3. **Logo (NON-NEGOTIABLE):** Every project needs premium logo. See Skill 12 for full process.
 4. Audit: logo found+rated>=7/10+works 16-512px, colors EXTRACTED, palette WCAG AA, typography+tone+messages identified.
 
+## Brand Extraction from Physical Assets (***LOCAL BUSINESS — NO WEBSITE***)
+
+Most local businesses have no website or a terrible one. Brand identity lives in the physical world — signage, storefront, business cards, uniforms, vehicle wraps. Extract from these:
+
+**Signage/Storefront (Google Street View + Places Photos):**
+1. Google Street View Static API (`GOOGLE_MAPS_API_KEY`): `https://maps.googleapis.com/maps/api/streetview?size=1200x800&location={lat},{lng}&source=outdoor` — captures storefront/signage
+2. Google Places photos: filter for `types: ["exterior", "storefront"]` — business owner uploads often show signage
+3. GPT-4o vision on storefront photo: extract sign text (business name font), sign colors (exact hex), logo if visible, building color scheme, awning/accent colors
+4. Prompt: "Extract brand identity from this business storefront photo. Return JSON: {sign_text, sign_font_style (serif/sans/script/decorative/hand-lettered), primary_color (hex), secondary_color (hex), accent_color (hex), logo_description, overall_aesthetic (modern/classic/rustic/industrial/cozy/clinical/upscale), confidence (0-1)}"
+
+**Business Cards/Collateral (user uploads via form):**
+GPT-4o vision extracts: logo (crop region), colors (exact hex from printed colors), font identification, tagline, phone/email/address for NAP verification.
+
+**Vehicle Wraps/Uniforms (Google Places photos):**
+Often the most brand-consistent asset. Extract colors and logo from team/vehicle photos in Places gallery.
+
+**Color extraction priority for local businesses:** signage → logo → storefront awning/trim → interior decor → vehicle wrap → business card → category default (LAST RESORT). Each color tagged with `color_source` for provenance.
+
+**Font matching from signage:** GPT-4o identifies font style → map to closest Google Font: script→Dancing Script, serif→Playfair Display, modern sans→Inter, hand-lettered→Caveat, decorative→varies. Never use exact proprietary fonts — find the spirit, not the letter.
+
 ## Brand Inference (New Products)
 Dev tool: technical/dark/monospace. SaaS: professional/clean/cards. Agency: confident/bold. E-commerce: friendly/product-focused. Nonprofit: warm/impact imagery. API: technical/docs-forward.
 

@@ -12,7 +12,9 @@ All research runs on the Worker (not in the container). Results are written as `
 
 Query: `GOOGLE_PLACES_API_KEY` → `findplacefromtext` with business name + address. Then `place/details` for: name, formatted_address, formatted_phone_number, opening_hours, website, rating, user_ratings_total, reviews (top 3), photos (download to R2), geometry (lat/lng), types, price_level, business_status. Confidence: google_places source at 80-95 depending on field.
 
-Fallback: Workers AI (Llama 3.1 70b) research prompt if no Places result. Lower confidence (50-70).
+Fallback chain: 1. Yelp Fusion API (`YELP_API_KEY`) — business match by name+location, returns reviews/photos/hours/categories (confidence 60-80). 2. Facebook Graph API — page search by business name, returns about/hours/phone/address (confidence 55-70). 3. BBB API/scrape — search by business name, returns rating/accreditation/complaints (confidence 70-85, trust signal). 4. Workers AI (Llama 3.3 70b) research prompt — synthesize from web search results (confidence 50-70, LAST RESORT).
+
+**Competitor analysis (auto, no extra API cost):** Google Places `nearbysearch` with same `type` within 5mi radius. Top 5 competitors: extract names, ratings, review counts, websites. Used in build prompt for differentiation ("You have 4.8 stars vs competitors averaging 4.2 — emphasize this").
 
 ## Phase 0b: Website Scraping (Deep Crawl)
 

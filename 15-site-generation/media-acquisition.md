@@ -27,6 +27,25 @@ Collect 10x more assets than needed, curate down via AI visual inspection. A 4-p
 | 11 | Ideogram v3 | IDEOGRAM_API_KEY | Logo generation | — | 70 |
 | 12 | Stability AI | STABILITY_API_KEY | Backgrounds, patterns | — | 65 |
 
+## Google Street View (***LOCAL BUSINESS MUST-HAVE***)
+
+Google Street View Static API (`GOOGLE_MAPS_API_KEY`): captures storefront/signage automatically. Three shots per business:
+1. `source=outdoor&heading=auto` — front-facing storefront, best for signage/brand extraction
+2. `source=outdoor&heading={heading+45}` — angled view showing context/neighboring businesses
+3. `source=outdoor&heading={heading-45}` — opposite angle
+
+URL: `https://maps.googleapis.com/maps/api/streetview?size=1200x800&location={lat},{lng}&source=outdoor&key={GOOGLE_MAPS_API_KEY}`. Check `status` endpoint first — returns `ZERO_RESULTS` if no imagery available. Cost: $7/1000 requests. Cache aggressively in R2 — Street View rarely changes.
+
+Use for: brand extraction (signage colors/fonts), storefront hero image (if no better photo), neighborhood context, building exterior for "Visit Us" section.
+
+## Interior + Staff Photo Acquisition
+
+**Google Places photo types:** The Places API returns photos tagged by Google's classifier. Filter for: `types: ["interior"]` for ambiance shots, `types: ["food"]` for restaurants, owner-uploaded photos (often show staff/team). Download all — more is always better for local business media richness.
+
+**Yelp Fusion photos:** Business endpoint returns user-uploaded photos. These are often candid interior/food/service shots that feel authentic. Higher emotional impact than staged photos. Rate: 5000 API calls/day.
+
+**Staff/team photos:** Search Google CSE: "{business_name} team" OR "{business_name} staff" with `searchType=image`. Also check business Facebook page (if verified in social check) — cover photos and "About" section often have team photos. NEVER generate fake headshots — use real photos or skip the team section entirely.
+
 ## Image Search Queries
 
 Per business: construct 3-5 search queries combining: business type + city, business name + storefront, business type + interior, specific services + professional. Example for "Vito's Mens Salon, Lake Hiawatha NJ": `["mens salon interior modern", "barber shop Lake Hiawatha NJ", "men haircut professional", "salon storefront exterior"]`.
