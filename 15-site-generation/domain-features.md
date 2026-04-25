@@ -123,13 +123,13 @@ These cost near-zero to add and dramatically increase value. Include ALL of thes
 
 **Retail:** Product highlights (featured, not full catalog) | Store locator if multi-location | Brand story section | Loyalty program CTA | Instagram/social shop link | Events/workshops calendar | JSON-LD: Store+Product | Special: link to existing ecommerce, don't rebuild catalog
 
-**Non-Profit:** Donation CTA (prominent, 3+ placements, suggested amounts $10/$25/$50/$100/$250) | Impact metrics (animated counters) | Programs/services list | Volunteer signup form | Events calendar | Newsletter signup | Partner/sponsor logos | Annual report highlights | JSON-LD: NGO+DonateAction | Special: mission statement hero, 501(c)(3) EIN in footer
+**Non-Profit:** Dedicated `/donate` page with one-time + monthly toggle (DEFAULT TO MONTHLY), suggested amounts $10/$25/$50/$100/$250, Stripe integration or link to existing platform | Donation CTA (prominent, 3+ placements linking to /donate) | Impact metrics (animated counters) | Programs/services list | Volunteer signup form | Events calendar | Newsletter signup | Partner/sponsor logos | Annual report highlights | JSON-LD: NGO+DonateAction | Special: mission statement hero, 501(c)(3) EIN in footer
 
 **Government/Institutional:** Service finder (search/filter) | Department directory | Document library (PDFs, organized by category) | News/press releases | Meeting calendar with agendas | Multi-language toggle | Accessibility statement page | JSON-LD: GovernmentOrganization | Special: WCAG AAA target, plain language
 
 **SaaS/Tech:** Feature comparison table (3-tier) | Interactive demo/video hero | Pricing toggle (monthly/annual) | Integration logos grid | API documentation link | Changelog/status page link | Trust badges (SOC2/GDPR/HIPAA) | Free trial CTA with email capture | JSON-LD: SoftwareApplication+Product | Special: dark theme default, code snippets section
 
-**Church/Religious:** Service times (weekly schedule) | Sermon archive (audio/video embeds) | Event calendar | Small groups directory | Online giving (Stripe donation) | Prayer request form | Staff/leadership directory | Visitor welcome section | JSON-LD: Church+Event | Special: livestream embed, warm welcoming tone
+**Church/Religious:** Service times (weekly schedule) | Sermon archive (audio/video embeds) | Event calendar | Small groups directory | Dedicated `/give` page with one-time + monthly toggle (DEFAULT TO MONTHLY), suggested amounts $25/$50/$100/$250/$500, Stripe or link to existing giving platform | Prayer request form | Staff/leadership directory | Visitor welcome section | JSON-LD: Church+Event | Special: livestream embed, warm welcoming tone
 
 **Pet Services:** Services (grooming/boarding/training) with pricing | Pet gallery | Staff profiles with certifications | Online booking | Vaccination requirements | Emergency vet referral | JSON-LD: PetStore+AnimalShelter | Special: friendly playful design, pet safety badges
 

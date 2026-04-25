@@ -114,6 +114,12 @@ Universal rules applied to ALL generated sites:
 
 **Service Area Pages (if applicable):** Each `/service-area/{city}` has unique H1, meta desc, localized content. No duplicate content across pages. All pages in sitemap.xml.
 
+**URL Preservation (***BUILD-BREAKING***):** Parse original sitemap from `_scraped_content.json`. Every original URL must return 200 (actual page) or 301 (redirect to new location). Zero 404s for previously-indexed URLs. Generate `_redirects` file for Cloudflare Pages or equivalent server-side redirect map. Build gate: `node validate-urls.js` compares original sitemap URLs against new sitemap + `_redirects` — fail if any URL unaccounted.
+
+**Content Migration Completeness:** New site word count must MATCH OR EXCEED original site word count from `_scraped_content.json`. All blog posts migrated as individual pages. Blog listing page with pagination present if original had blog. RSS feed at `/feed.xml` or `/rss.xml`. No substantive content discarded without explicit user approval.
+
+**Donation Page (non-profit/church):** `/donate` or `/give` page present with both one-time and monthly options. Monthly selected by default. Suggested amounts visible. Stripe integration or link to existing platform. Donation CTA present on 3+ pages.
+
 ## Domain-Specific Quality Rules
 
 **Restaurant:** Menu must have prices. Food photos must look appetizing (well-lit, styled). Hours prominently displayed. Online ordering CTA if platform exists.

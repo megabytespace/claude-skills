@@ -40,20 +40,39 @@ Every image in assets/ MUST appear on the site. Every fact must come from resear
 - Use brand fonts (or Inter/Satoshi fallback) in tailwind.config.ts
 - Logo from assets/logo.* in EVERY page header
 
-### Pages (4-8 depending on content volume)
+### Pages (match original site structure — NEVER reduce page count)
 - Homepage: hero with brand image + gradient overlay, selling points grid, about preview, testimonials, FAQ, CTA
 - About: 2000+ words, verifiable facts from research, team section if data exists
 - Services/Menu/Features: detailed grid with images, pricing if available
 - Contact: form (if email found), Google Maps embed (if geo), social links (verified only), full NAP
-- Additional pages based on content volume from _scraped_content.json
-- Blog listing (if scraped content includes news/updates/blog posts)
+- Blog: migrate ALL blog/news/updates from _scraped_content.json — individual route per post, listing page with pagination, RSS feed. Blog content is SEO equity — never discard it.
+- Donation page (non-profit/church): one-time + monthly toggle, default to MONTHLY. Suggested amounts from category. Stripe integration or link to existing platform.
+- Additional pages: create a page for EVERY distinct page in _scraped_content.json. Content-rich originals get rebuilt as full pages. Thin pages may be merged but MUST get 301 redirects.
+
+### Content Migration (***NEVER DISCARD CONTENT***)
+The original site's content is the business's accumulated SEO equity and institutional knowledge. Treat it as sacred.
+- Migrate ALL text content from _scraped_content.json — rewrite for quality but preserve substance
+- Every blog post, news article, update → individual page at matching URL path
+- Team bios, service descriptions, FAQ answers, event archives → all migrated
+- Only discard: broken markup, "test" pages, truly empty pages, exact duplicates
+- When combining thin pages: content merges into a richer page, old URLs get 301s
+- Word count of new site should MATCH OR EXCEED original (not 50% — 100%+)
+
+### URL Preservation (***NON-NEGOTIABLE***)
+Parse _scraped_content.json for all original URL paths. Every original URL must resolve:
+- Same path → actual page (preferred): `/about-us` → About page at `/about-us`
+- Different path → 301 redirect: if original `/our-team` merges into `/about`, add redirect
+- Blog posts: preserve exact slug `/blog/2024/summer-event` → same route
+- Generate `_redirects` file (Cloudflare Pages format) or server-side redirect map
+- Validate: every URL from original sitemap.xml returns 200 or 301 — never 404
+- Build gate: compare original sitemap URLs vs new sitemap + redirects, fail if any URL unaccounted
 
 ### Design System (***skill 10 — MANDATORY***)
 Read ~/.agentskills/10-experience-and-design-system/SKILL.md for full design system.
 Apply ALL patterns from "Local Business Design Patterns (SITE GENERATION)" section.
 
-- Dark-first: #060610 base (NOT #0a0a1a), brand-appropriate overrides via OKLCH
-- Typography: clamp() fluid scale (1rem→1.125rem body, 2.5rem→4rem hero), Space Grotesk headings
+- Dark-first: dark base color from _brand.json (fallback: extracted from logo/site), brand-appropriate overrides via OKLCH
+- Typography: clamp() fluid scale (1rem→1.125rem body, 2.5rem→4rem hero), brand heading font or fallback
 - Cascade layers: @layer reset, base, components, utilities — native CSS nesting, no preprocessor
 - Container queries for component-responsive cards (not just viewport breakpoints)
 - 10+ @keyframes: fadeInUp, slideIn, scaleIn, shimmer, float, pulse, gradientShift, borderGlow, parallax, typewriter
@@ -65,8 +84,11 @@ Apply ALL patterns from "Local Business Design Patterns (SITE GENERATION)" secti
 - Anti-slop check: grep for banned words before build (see skill 09 copy-rules)
 - Apple Test: "Would Apple ship this?" If no → redesign before deploy
 
-### Content Rules
-- 5000+ words total real content (from research + scraped content)
+### Content Rules (***PRESERVE EVERYTHING***)
+- Word count must MATCH OR EXCEED original site (never less content than before)
+- 5000+ words minimum real content (from research + scraped content) — most rebuilds will far exceed this
+- Migrate ALL substantive text from _scraped_content.json — rewrite for quality, preserve substance
+- Blog posts, news articles, event recaps → individual pages with original publish dates
 - Every claim factually accurate from _research.json
 - Address links → Google Maps: https://www.google.com/maps/dir/?api=1&destination={{encoded_address}}
 - Phone → tel: links | Email → mailto: links
@@ -224,7 +246,7 @@ Generate `public/site.webmanifest`:
   "start_url": "/",
   "display": "standalone",
   "theme_color": "{{brand_primary}}",
-  "background_color": "#060610",
+  "background_color": "{{brand_background}}",
   "icons": [
     {"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png"},
     {"src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png"}
