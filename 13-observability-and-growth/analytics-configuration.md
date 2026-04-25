@@ -16,7 +16,7 @@ always-load: false---
 | Feature Flags | PostHog | Yes |
 | A/B Testing | PostHog Experiments | Yes |
 | Session Recording | PostHog (mask inputs) | Yes |
-| Error Tracking | Sentry | Yes (sentry.megabyte.space) |
+| Error Tracking | Sentry (***AUTO-PROVISION***) | Yes (sentry.megabyte.space) |
 
 ## Event Naming: `object_action` (snake_case, past tense)
 `page_viewed`, `cta_clicked`, `form_submitted`, `signup_completed`, `subscription_started`, `error_displayed`
@@ -102,8 +102,11 @@ script-src: https://www.googletagmanager.com https://www.google-analytics.com ht
 connect-src: https://www.google-analytics.com https://analytics.google.com https://*.posthog.com https://*.sentry.io
 ```
 
+## Sentry Auto-Provision (***MANDATORY***)
+Every project gets Sentry from day one. Missing @sentry/cloudflare or @sentry/node → install+wrap+create project via mcp__sentry__create_project (org:megabyte-labs, team:megabyte-labs, platform:javascript) → set SENTRY_DSN via `wrangler secret put`. Full-stack traces: tracesSampleRate, app.onError()→captureException with route+userId tags, breadcrumbs before risky ops, SENTRY_RELEASE for deploy tracking. Same auto-provision applies to PostHog+GA4/GTM — if missing, add in same prompt.
+
 ## Verification Checklist
-GTM loads, GA4 fires (DebugView), PostHog captures pageviews (Live Events), custom events fire on interactions, feature flags resolve, session recording captures, no duplicate events, CSP allows all domains, scroll depth fires at milestones, no cookies set (self-hosted PostHog).
+GTM loads, GA4 fires (DebugView), PostHog captures pageviews (Live Events), Sentry DSN set+errors captured (Sentry Issues dashboard), custom events fire on interactions, feature flags resolve, session recording captures, no duplicate events, CSP allows all domains, scroll depth fires at milestones, no cookies set (self-hosted PostHog).
 
 ## Ownership
 **Owns:** GA4 config, GTM setup, PostHog SDK, feature flags, A/B tests, event taxonomy, funnels, session recording, scroll tracking, dataLayer architecture, cookie-free analytics, verification.
