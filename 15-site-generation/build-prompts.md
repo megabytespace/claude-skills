@@ -48,14 +48,22 @@ Every image in assets/ MUST appear on the site. Every fact must come from resear
 - Additional pages based on content volume from _scraped_content.json
 - Blog listing (if scraped content includes news/updates/blog posts)
 
-### Design System
-- Dark theme: bg-[#0a0a1a] or brand-appropriate dark
+### Design System (***skill 10 — MANDATORY***)
+Read ~/.agentskills/10-experience-and-design-system/SKILL.md for full design system.
+Apply ALL patterns from "Local Business Design Patterns (SITE GENERATION)" section.
+
+- Dark-first: #060610 base (NOT #0a0a1a), brand-appropriate overrides via OKLCH
+- Typography: clamp() fluid scale (1rem→1.125rem body, 2.5rem→4rem hero), Space Grotesk headings
+- Cascade layers: @layer reset, base, components, utilities — native CSS nesting, no preprocessor
+- Container queries for component-responsive cards (not just viewport breakpoints)
 - 10+ @keyframes: fadeInUp, slideIn, scaleIn, shimmer, float, pulse, gradientShift, borderGlow, parallax, typewriter
 - Glassmorphism cards: bg-white/5 backdrop-blur-md border border-white/10
 - Gradient text on key headings: bg-clip-text text-transparent bg-gradient-to-r
 - 25+ inline SVG decorative elements (geometric shapes, section dividers)
 - IntersectionObserver on every section for scroll-triggered animations
 - Staggered animation delays on card grids (0.1s between each)
+- Anti-slop check: grep for banned words before build (see skill 09 copy-rules)
+- Apple Test: "Would Apple ship this?" If no → redesign before deploy
 
 ### Content Rules
 - 5000+ words total real content (from research + scraped content)
@@ -216,7 +224,7 @@ Generate `public/site.webmanifest`:
   "start_url": "/",
   "display": "standalone",
   "theme_color": "{{brand_primary}}",
-  "background_color": "#0a0a1a",
+  "background_color": "#060610",
   "icons": [
     {"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png"},
     {"src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png"}

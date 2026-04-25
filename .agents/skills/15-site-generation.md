@@ -69,9 +69,9 @@ The container receives ONE prompt that encompasses all build phases. The prompt 
 
 ## Build Rules (NON-NEGOTIABLE)
 
-**Images:** USE ALL images in assets/. Never use external URLs (hotlinking blocked). Hero: assets/hero-*. Gallery: full-width slider with ALL images. Service cards: relevant images. No image in assets/ left unused. ***Minimum 30 unique images per site*** (discovered + AI-generated originals + stock). 3-5 AI-generated originals per site (hero backgrounds, service illustrations, textures). The site must feel media-rich from first scroll — no sparse pages.
+**Images:** USE ALL images in assets/. Never use external URLs (hotlinking blocked). Hero: assets/hero-*. Gallery: full-width slider with ALL images. Service cards: relevant images. No image in assets/ left unused. ***Minimum 30 unique images per site*** (discovered + AI-generated originals + stock). 3-5 AI-generated originals per site (hero backgrounds, service illustrations, textures). The site must feel media-rich from first scroll — no sparse pages. All images processed through optimization pipeline (skill 12 image-optimization.md): WebP+AVIF at 320/640/1280/1920w, blur placeholders, dominant color extraction. Use <ResponsiveImage> component — never raw <img> with PNG/JPG src.
 
-**Design:** Dark theme preferred (#0a0a1a base). 10+ @keyframes animations. Glassmorphism cards (bg-white/5 backdrop-blur-md border-white/10). Gradient text on key headings. Parallax-style depth on hero. 25+ inline SVG decorative elements. Every interactive element has hover+active+focus states. Smooth scroll for ALL same-page nav (scrollIntoView, never #href jumps).
+**Design:** Dark-first #060610 base (skill 10 — MANDATORY). 10+ @keyframes animations. Glassmorphism cards (bg-white/5 backdrop-blur-md border-white/10). Gradient text on key headings. Parallax-style depth on hero. 25+ inline SVG decorative elements. Every interactive element has hover+active+focus states. Smooth scroll for ALL same-page nav (scrollIntoView, never #href jumps).
 
 **Content:** 5000+ words real content. About page 2000+ words. Every claim factually accurate from research. Addresses → Google Maps links. Phone → tel: links. Email → mailto: links. NO lorem ipsum, NO placeholder text, NO TODO stubs.
 
@@ -79,7 +79,7 @@ The container receives ONE prompt that encompasses all build phases. The prompt 
 
 **Brand:** Extract colors from LOGO first → website → signage in photos (see skill 09 "Brand Extraction from Physical Assets" section). Never guess from category. Use ALL original content from scraped site. Logo must appear in every header. Brand fonts influence entire design.
 
-**Tech:** Vite+React+Tailwind+shadcn/ui. React Router for multi-page nav. IntersectionObserver for scroll animations. Lucide React icons (verified names only). `npm run build` must compile zero errors. `prefers-reduced-motion` on ALL animations (see skill 11). 15 local business components from template-system.md: HeroWithPhoto, ServiceCards, TestimonialCarousel, MapEmbed, StickyPhoneCTA, NAPFooter, TrustBadges, ReviewCTA, GalleryGrid, BeforeAfterSlider, QuickActions, EmergencyBanner, SpeedDial, BookingEmbed, LocalSchemaGenerator. PWA manifest + favicon set + print stylesheet mandatory.
+**Tech:** Vite+React+Tailwind+shadcn/ui. React Router for multi-page nav. IntersectionObserver for scroll animations. Lucide React icons (verified names only). `npm run build` must compile zero errors. `prefers-reduced-motion` on ALL animations (see skill 11). 16 local business components from template-system.md: HeroWithPhoto, ServiceCards, TestimonialCarousel, MapEmbed, StickyPhoneCTA, NAPFooter, TrustBadges, ReviewCTA, GalleryGrid, BeforeAfterSlider, QuickActions, EmergencyBanner, SpeedDial, BookingEmbed, LocalSchemaGenerator, ResponsiveImage. PWA manifest + favicon set + print stylesheet mandatory. Service worker for offline mode mandatory — local business customers need contact info without connectivity.
 
 **Analytics (***NON-NEGOTIABLE — skill 13***):** PostHog snippet (`persistence:'memory'`, cookie-free) + GA4/GTM container + local conversion tracking (phone_click, direction_click, form_submit, booking_click). See skill 13 conversion-optimization.md for event taxonomy. Every `tel:` link fires phone_click. Every Maps link fires direction_click. Every form submit fires form_submit.
 
@@ -116,6 +116,21 @@ Never waste API credits on speculative builds. If error: reduce to simplest repr
 **Two separate budgets — don't confuse them:**
 1. **GPT-4o vision QA: ***$1 HARD CAP.*** ** Image profiling FREE (Workers AI) + hero pick ~$0.02 (GPT-4o), logo pick ~$0.02, inspect.js draft rounds FREE (Workers AI) + final homepage ~$0.02, post-deploy homepage QA ~$0.02. Homepage/ATF gets GPT-4o priority. Total ~$0.08-0.15 typical.
 2. **Media generation/acquisition: $0.50-2.00 (GOOD spend).** Ideogram logos ~$0.05, GPT Image 1.5 originals ~$0.04/each (5-10 per site), Stability textures ~$0.03/each, stock APIs (free tiers). This spend CREATES the content that makes sites convert — never cap it below what's needed for 30-50 images + 3-5 videos per site.
+
+## Post-Launch Email Sequence (***DISABLED BY DEFAULT***)
+
+After site generation, the pipeline CAN auto-send a welcome email to the business owner (extracted from `_research.json.contact.email` or `_form_data.json.email`). Currently disabled — enable via `ENABLE_POST_LAUNCH_EMAIL=true` env var in container.
+
+**Sequence (Resend + Inngest):**
+1. **Immediate:** "Your new website is live at {slug}.projectsites.dev" — screenshot, direct link, QR code
+2. **Day 3:** "Claim your Google Business listing" — step-by-step with deep link to `business.google.com/create`
+3. **Day 7:** "Get your first 5-star review" — review QR card PDF, email template, SMS template
+4. **Day 14:** "Share your site on social media" — pre-written posts for Facebook/Instagram/LinkedIn
+5. **Day 30:** "Your first month: {pageviews} visitors, {calls} calls" — PostHog analytics summary
+
+**Implementation:** Inngest step functions with scheduled delays. Each step checks `_research.json.contact.email` validity. Unsubscribe link in every email. CAN-SPAM compliant. Templates in Resend with brand colors from `_brand.json`.
+
+**Trigger:** Worker sends Inngest event `site/launched` with slug+email+brandColors after successful build+deploy. Inngest function handles timing.
 
 ## Unit Economics at Scale (***1M+ SITES***)
 

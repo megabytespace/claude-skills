@@ -27,7 +27,7 @@ template/
 │   │   ├── Hero.tsx    — full-width, parallax-ready, gradient overlay, CTA slots
 │   │   ├── Section.tsx — reusable section wrapper with IntersectionObserver animations
 │   │   ├── ContactForm.tsx — Turnstile-ready, Zod validation, submission handler
-│   │   └── local/      — 15 local business components (see below)
+│   │   └── local/      — 16 local business components (see below)
 │   ├── hooks/
 │   │   ├── useInView.ts    — IntersectionObserver hook
 │   │   ├── useSEO.ts       — meta tag management
@@ -102,6 +102,10 @@ Local business sites need components SaaS templates don't have. These are pre-bu
 **PWA manifest:** `public/site.webmanifest` with business name, brand colors, icons (192+512). `<link rel="manifest">` in index.html. Favicon set: ico (16+32+48), apple-touch-icon (180), android-chrome (192+512). Meta theme-color matches brand primary.
 
 **Print stylesheet:** `@media print` in index.css: hide nav/footer/sticky-cta/speed-dial, white bg, black text, show link URLs via `a[href]::after`, img max-width 100%.
+
+**Service worker:** `public/sw.js` caches app shell + images (cache-first, max 200) + HTML (network-first). Excludes analytics. Registered in `main.tsx` (production only). Critical for rural/poor-connectivity areas. Verify offline: disconnect → refresh → site loads.
+
+**Responsive images:** `<ResponsiveImage>` component in `src/components/local/`. Renders `<picture>` with AVIF→WebP→fallback, srcset 320/640/1280/1920w, blur placeholder, dominant color. Hero uses `eager` prop. Everything else lazy. Built on skill 12 image-optimization.md pipeline.
 
 **SMS deep links:** Every `tel:` link paired with `sms:` option. Track as sms_click. Mobile: "Call" and "Text" buttons side by side.
 
