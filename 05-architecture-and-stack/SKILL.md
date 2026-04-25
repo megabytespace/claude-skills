@@ -127,7 +127,7 @@ GCP: `/Users/apple/.config/emdash/gcp-service-account.json`
 CF Global: blzalewski@gmail.com / ***REDACTED_CF_KEY***
 
 | Service | Env Var | Free Tier |
-|---------|---------|----------|
+|---------|---------|-----------||
 | Cloudflare | CLOUDFLARE_API_TOKEN | Yes |
 | Stripe | STRIPE_API_KEY | Test free |
 | Resend | RESEND_API_KEY | 100/day |
