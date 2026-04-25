@@ -100,7 +100,7 @@ R2 credentials: CF_API_TOKEN, CF_ACCOUNT_ID, R2_BUCKET_NAME, SITE_SLUG, SITE_VER
 Never waste API credits on speculative builds. If error: reduce to simplest reproducible state first. Fix issues as separate minimal tests. Only trigger full builds when pipeline proven working.
 
 **Two separate budgets — don't confuse them:**
-1. **GPT-4o vision QA: ***$1 HARD CAP.*** ** Image profiling ~$0.15, logo pick ~$0.05, inspect.js ~$0.03/round, post-deploy QA ~$0.10-0.20. Homepage/ATF gets vision priority. Total ~$0.35-0.45 typical.
+1. **GPT-4o vision QA: ***$1 HARD CAP.*** ** Image profiling FREE (Workers AI) + hero pick ~$0.02 (GPT-4o), logo pick ~$0.02, inspect.js draft rounds FREE (Workers AI) + final homepage ~$0.02, post-deploy homepage QA ~$0.02. Homepage/ATF gets GPT-4o priority. Total ~$0.08-0.15 typical.
 2. **Media generation/acquisition: $0.50-2.00 (GOOD spend).** Ideogram logos ~$0.05, GPT Image 1.5 originals ~$0.04/each (5-10 per site), Stability textures ~$0.03/each, stock APIs (free tiers). This spend CREATES the content that makes sites convert — never cap it below what's needed for 30-50 images + 3-5 videos per site.
 
 ## Unit Economics at Scale (***1M+ SITES***)
@@ -112,18 +112,18 @@ Never waste API credits on speculative builds. If error: reduce to simplest repr
 | **Code generation** | $0.50-2.00 (Claude Code) | $0.02-0.05 (Workers AI) | Llama 3.3 70B for template fill, Claude only for complex/custom |
 | **Research APIs** | ~$0.01 (Google Places) | ~$0.005 | Batch + cache nearby businesses, reuse geo data |
 | **Web scraping** | ~$0 (fetch) | ~$0 | CF Workers fetch, zero cost |
-| **Image profiling** | ~$0.15 (GPT-4o) | ~$0.01 (Workers AI) | Llama Vision on edge, batch profiling |
+| **Image profiling** | ~$0.02 (Workers AI bulk + GPT-4o hero) | ~$0.01 (Workers AI) | Llama Vision for all, GPT-4o hero pick only |
 | **Logo generation** | ~$0.05 (Ideogram) | ~$0.05 | No cheap alternative for quality logos |
 | **AI images** | ~$0.30 (5-8 GPT Image) | ~$0.10 (Workers AI SDXL) | Edge inference, bulk pricing, category caching |
 | **Stock images** | ~$0 (free tiers) | ~$0 | Unsplash/Pexels/Pixabay unlimited for most uses |
 | **Video discovery** | ~$0 (YouTube embed) | ~$0 | YouTube/Pexels embeds, no storage |
-| **Vision QA** | ~$0.35 (GPT-4o) | ~$0.02 (Workers AI) | Llama Vision for QA, GPT-4o only for homepage ATF |
-| **In-container inspect** | ~$0.03 (GPT-4o) | ~$0.005 (Workers AI) | Edge model for build validation |
+| **Vision QA** | ~$0.06 (Workers AI bulk + GPT-4o homepage) | ~$0.02 (Workers AI) | Workers AI all pages, GPT-4o homepage ATF only |
+| **In-container inspect** | ~$0.02 (Workers AI draft + GPT-4o final) | ~$0.005 (Workers AI) | Workers AI drafts, GPT-4o final homepage only |
 | **R2 storage** | ~$0 (free egress) | ~$0.001/site/mo | ~5MB/site × 1M = 5TB, $0.015/GB/mo |
 | **D1 database** | ~$0 | ~$0.001/site/mo | Row storage minimal |
 | **Container compute** | ~$0.10 (CF Container) | ~$0.02 | Pre-warm pools, shorter runs with template engine |
 | **DNS/routing** | ~$0 | ~$0 | Wildcard *.projectsites.dev |
-| **TOTAL** | **$1.50-4.50** | **$0.25-0.40** | 85-90% cost reduction at scale |
+| **TOTAL** | **$1.00-3.50** | **$0.25-0.40** | 80-90% cost reduction at scale |
 
 ### Scale Optimization Strategies
 

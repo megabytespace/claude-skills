@@ -73,11 +73,13 @@ YouTube Data API (`YOUTUBE_API_KEY`): search business name + city → top 3 resu
 
 **Video placement strategy:** Hero background (muted autoplay 4-8s loop from Pexels), services section (YouTube embed if business has channel), about section (B-roll montage), testimonials (video reviews if available). Every page should have at least one video or animated element.
 
-## Image Profiling (GPT-4o Vision)
+## Image Profiling (***COST-TIERED***)
 
-After collection, profile EVERY image via GPT-4o: description, keywords (3-5), quality_score (1-10), relevance_score (1-10), suggested_placement (hero|about|services|gallery|team|testimonials|background), alt_text, dominant_colors (3-5 hex). Batch 5 images/call, 3 batches parallel. Reject: quality <5, relevance <4, watermarks, inappropriate content, <1000 bytes (tracking pixels), >10MB.
+**Tier 1 — Workers AI Llama Vision (FREE):** Profile ALL images: description, keywords (3-5), quality_score (1-10), relevance_score (1-10), suggested_placement, alt_text, dominant_colors (3-5 hex). Batch 5 images/call, 3 batches parallel. Sufficient for 90% of placement decisions.
 
-Store profiles as `_image_profiles.json`. Claude Code reads this to know which image goes where.
+**Tier 2 — GPT-4o detail:low (~$0.02):** Top 5 hero candidates only (sorted by Tier 1 combined score). Single batch call. Picks final hero, validates brand color extraction, confirms quality for above-the-fold placement.
+
+Reject: quality <5, relevance <4, watermarks, inappropriate content, <1000 bytes (tracking pixels), >10MB. Store profiles as `_image_profiles.json`. Claude Code reads this to know which image goes where.
 
 ## Image Storage
 

@@ -7,22 +7,23 @@ allowed-tools: "Bash, Read, Write, Edit, mcp__playwright__*"
 
 # AI Technology Integration
 
-## Visual TDD Loop (MANDATORY every deploy)
+## Visual TDD Loop (MANDATORY every deploy — ***COST-TIERED***)
 ```
-Build -> Deploy -> Screenshot (6 breakpoints) -> GPT-4o Vision -> Fix Issues -> Redeploy -> Repeat until 0 issues
+Build -> Deploy -> a11y tree ALL pages (FREE) -> axe-core (FREE) -> fix -> Screenshot 2bp (375+1280) -> Workers AI Llama Vision (FREE) -> fix -> GPT-4o detail:low homepage ATF only ($0.02) -> fix -> DONE
 ```
 
-**Quick (inline):** Playwright screenshot + GPT-4o structured analysis via API
-**Automated:** `/Users/apple/.agentskills/scripts/visual-tdd-loop.sh https://example.com 5`
+**Quick (inline):** Playwright a11y tree + axe-core (FREE, catches 80%) → Workers AI vision for layout → GPT-4o detail:low for homepage aesthetics only
+**Automated:** `/Users/apple/.agentskills/scripts/visual-tdd-loop.sh https://example.com 2`
 **Single image:** `/Users/apple/.agentskills/scripts/gpt4o-vision-analyze.sh screenshot.png`
 
-Run after: every deploy, CSS/layout changes, new pages, UI PRs, competitive analysis.
-Acceptance: all 6 breakpoints clean, zero critical/high issues, max 5 iterations.
+Run after: every deploy, CSS/layout changes, new pages, UI PRs.
+Acceptance: 2 breakpoints (375+1280) clean, zero critical/high issues, max 3 iterations. ***$1 HARD CAP on GPT-4o per prompt.***
 
 ## Model Selection
 | Task | Model | Cost | Latency |
 |------|-------|------|---------|
-| Visual QA | GPT-4o | ~$0.01/img | 2-5s |
+| Visual QA (bulk) | Workers AI Llama Vision | FREE | <1s |
+| Visual QA (homepage) | GPT-4o detail:low | ~$0.02/call | 2-5s |
 | Code gen | Claude Opus 4.6 | Included | - |
 | Logo | Ideogram v3 | ~$0.03 | 5-10s |
 | Hero/scene image | gpt-image-1.5 | ~$0.04 | 10-20s |
