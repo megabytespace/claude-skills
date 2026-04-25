@@ -44,14 +44,30 @@ Every image in assets/ MUST appear on the site. Every fact must come from resear
 - NEVER hardcode hex colors — always reference _brand.json or CSS custom properties
 - NEVER guess colors from business category — the njsk.org burgundy incident
 
-### Pages (match original site structure — NEVER reduce page count)
+### Logo Extraction (***MANDATORY — NEVER SKIP***)
+- Phase 0 research pipeline MUST extract the official logo from the existing website
+- Extraction order: (1) <img> in <header>/<nav> with "logo" in src/alt/class (2) og:image meta tag (3) site banner/hero image with org name (4) favicon/apple-touch-icon (5) Squarespace/WordPress theme logo selectors
+- Download logo image to assets/logo.{ext} — preserve original format (WebP/PNG/SVG preferred)
+- Generate sized variants: logo-header.png (max 200px height for nav), logo.png (full size for OG/hero), logo-favicon.ico (32x32+16x16)
+- If original is WebP: convert to PNG via sips/sharp/imagemagick for broad compatibility
+- Logo MUST appear in: header nav (every page), footer, OG image, JSON-LD logo field, favicon
+- NEVER substitute SVG placeholder icons for the real logo — the njsk.org soup-bowl-SVG incident
+- If no logo found on website: check Google Places photos, social media profile images, Brandfetch API, logo.dev API — exhaust ALL sources before generating one
+- Logo colors inform brand palette extraction: dominant color→primary, secondary accent→secondary
+
+### Pages (***match original site structure — NEVER reduce page count***)
 - Homepage: hero with brand image + gradient overlay, selling points grid, about preview, testimonials, FAQ, CTA
-- About: 2000+ words, verifiable facts from research, team section if data exists
-- Services/Menu/Features: detailed grid with images, pricing if available
-- Contact: form (if email found), Google Maps embed (if geo), social links (verified only), full NAP
-- Blog: migrate ALL blog/news/updates from _scraped_content.json — individual route per post, listing page with pagination, RSS feed. Blog content is SEO equity — never discard it.
-- Donation page (non-profit/church): one-time + monthly toggle, default to MONTHLY. Suggested amounts from category. Stripe integration or link to existing platform.
-- Additional pages: create a page for EVERY distinct page in _scraped_content.json. Content-rich originals get rebuilt as full pages. Thin pages may be merged but MUST get 301 redirects.
+- About: 2000+ words, verifiable facts from research, team section if data exists. Include sub-pages: mission, vision, how-we-do-it, founder history
+- Services/Menu/Features: detailed grid with images, pricing if available. Each service gets full description — not a 2-sentence summary
+- Contact: form (if email found), Google Maps embed (if geo), social links (verified only), full NAP, mailing address
+- Blog (***MANDATORY if original site has one***): migrate ALL blog/news/updates from _scraped_content.json — individual route per post with full content, listing page with date+author+excerpt, pagination if 10+ posts. Blog content is SEO equity and community engagement proof — never discard it. Each post gets its own route, not just a listing card
+- FAQ: if original site has FAQ, create dedicated FAQ page with accordion UI and FAQPage schema
+- Team/Staff: if original site lists team members, create team page with names, roles, department groupings
+- Donation page (non-profit/church): one-time + monthly toggle, default to MONTHLY. Suggested amounts from category. Stripe integration or link to existing platform
+- Category-specific pages: mass schedule (church), menu (restaurant), pricing (salon), specialties (medical), practice areas (legal) — scrape and recreate ALL of these
+- "We Need" / wishlist pages (non-profit): donation item lists, drop-off info, seasonal needs
+- Additional pages: create a page for EVERY distinct page in _scraped_content.json. Content-rich originals get rebuilt as full pages. Thin pages may be merged but MUST get 301 redirects
+- Nav must include ALL pages — never hide pages that exist on the original site. If nav gets crowded, use dropdown menus
 
 ### Content Migration (***NEVER DISCARD CONTENT***)
 The original site's content is the business's accumulated SEO equity and institutional knowledge. Treat it as sacred.
