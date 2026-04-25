@@ -15,11 +15,12 @@ submodules:
   - og-image-generation.md
   - image-optimization.md
   - technical-diagramming.md
+  - image-profiling.md
 ---
 
 # 12 -- Media Orchestration
 
-Submodules: media-prompts.md (prompt templates, Ideogram v3 API), compression-pipeline.md (Python code, format tables, CF Image Transforms, CLS, broken image detection), og-image-generation.md (Satori edge-rendered OG images, KV/R2 cache, meta-tag helper), image-optimization.md (Sharp processing, responsive srcset, WebP/AVIF, blur placeholders, R2 pipeline).
+Submodules: media-prompts.md (prompt templates, Ideogram v3 API), compression-pipeline.md (Python code, format tables, CF Image Transforms, CLS, broken image detection), og-image-generation.md (Satori edge-rendered OG images, KV/R2 cache, meta-tag helper), image-optimization.md (Sharp processing, responsive srcset, WebP/AVIF, blur placeholders, R2 pipeline), image-profiling.md (GPT-4o vision batch profiling — quality+placement+colors per image, pre-digest for builders).
 
 ## Strategy by Section
 Hero: GPT Image 1.5/Sora. Features: GPT Image 1.5/SVG. How It Works: GPT Image 1.5. Testimonials: stock. About: stock/real. Blog: GPT Image 1.5. Social: Satori OG 1200x630. Icons: Ideogram v3+processing.
@@ -40,7 +41,7 @@ GPT Image 1.5 preferred (best quality). GPT Image 1 for speed. GPT Image 1-mini 
 ## Logo (NON-NEGOTIABLE)
 **Discovery:** Logo.dev, Brandfetch, scrape header, Google Images, favicon, social. High quality: use. Low: AI-enhance. Favicon only: upscale.
 
-**Generation (if none):** 4-6 Ideogram v3 variants (2 lockup, 2 icon, 1 wordmark, 1 creative). A/B via GPT-4o (rate 1-10). Best <7: regenerate (max 3 rounds).
+**Generation (if none):** 3 Ideogram v3 variants (A=lockup, B=icon, C=wordmark). Single GPT-4o call rates all 3 (1-10). Winner <7: regenerate losing slot only (max 2 rounds). Cost: ~$0.05 total (3 Ideogram + 1 GPT-4o detail:low).
 
 **Assets:** favicon.ico (16+32+48), 16/32/180/192/512 PNGs, logo-header, logo-mark, og-image 1200x630.
 

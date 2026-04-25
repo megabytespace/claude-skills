@@ -3,3 +3,6 @@ node_modules/
 *.log
 .env
 .env.*
+.claude/worktrees/
+.claude/progress.md
+.claude/scheduled_tasks.lock
