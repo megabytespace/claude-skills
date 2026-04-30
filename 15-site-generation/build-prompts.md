@@ -164,6 +164,64 @@ Images are not a site-wide pool — they belong to specific pages. When scraping
 
 **The njsk.org blog image incident:** Blog posts were migrated as text-only even though every post on njsk.org had 1-19 associated photos (volunteer group photos, event shots, donation images). These photos ARE the content for a non-profit blog — without them, posts are meaningless stubs.
 
+### Image Dedupe via 301 (***NEVER DELETE WITHOUT REDIRECTING — UPDATE EVERY REFERENCE***)
+When a build downloads CMS images, the same asset frequently appears under multiple filenames (Squarespace serves the same hero as `assetUrl` AND inside `body` HTML). Naive dedupe by md5 hash + delete breaks every reference still pointing at the deleted path — internal links, OG images, sitemap entries, external backlinks, search-engine-indexed URLs. **Always 301 the deleted twin to the kept canonical, never just `rm`.**
+- **Workflow:** (1) hash every image in `public/images/{section}/` by md5 (2) for each duplicate, pick the canonical (shorter/more-descriptive filename, or `*-1.jpg` over `*-body-N.jpg`) (3) delete the twin file (4) emit `{deleted-url: canonical-url}` to a redirect map compiled into the worker (5) the worker `Response.redirect(target, 301)` on every request matching a deleted path
+- **Reference script (proven on njsk.org):** `~/.agentskills/15-site-generation/build-image-redirects.mjs` — walks `git log --reverse --name-status` to find every image deletion on the branch, recovers each blob via `git show {commit}~1:{path}`, hashes against current files, emits `src/data/image-redirects.ts` (Worker bundle) + `public/_image-redirects.json` (debug). Output: 478/502 mapped on njsk.org rebuild
+- **Worker integration:** Top of `fetch()` handler — `const target = imageRedirects[url.pathname]; if (target) return Response.redirect(new URL(target, url).toString(), 301);` BEFORE `env.ASSETS.fetch()`. Add a 404 short-circuit for `/images/{section}/*` so unmapped misses don't waterfall into SPA fallback
+- **Source-code reference hygiene (***UPDATE EVERY REFERENCE — NEVER LEAVE ALIASES***):** When images are renamed/deleted, grep every `.tsx/.ts/.html/.md` for the old filename and update to the canonical. Short aliases like `pseg-1.jpg`, `barbara-cary-1.jpg`, `fed-volunteers-1.jpg` are fragile — always reference the full descriptive filename (`pseg-feb-2023-1.jpg`, `introducing-barbara-cary-1.jpg`, `federal-reserve-bank-volunteers-1.jpg`). Hard gate: `node scripts/scan-assets.mjs` on production must report ZERO 404s on `/images/*` requests. Any 404 = build incomplete
+- **The njsk.org dedupe incident:** First dedupe pass deleted 502 duplicate images by md5 hash but left 9 home/services/volunteer/we-need pages referencing the deleted short-alias filenames — every page rendered with broken image icons. Fix required (a) building the 301 redirect map post-hoc from git history (b) rewriting every page-source `.tsx` to use canonical filenames (c) the parallel asset scan to catch the residual 404s. **The rule going forward: dedupe + redirect + reference-update happen in one atomic commit, never separately.**
+
+### Per-Route SEO Meta (***EVERY ROUTE GETS UNIQUE TITLE / DESC / KEYPHRASE / CANONICAL / JSON-LD***)
+SPAs default to one shared `<title>` and `<meta>` set across every route — Yoast/Lighthouse/Search Console all flag this as duplicate-content. Every public route MUST have unique meta keyed off the pathname, with a researched keyphrase that the page genuinely deserves to rank for.
+- **Data file:** `src/data/page-meta.ts` exports a `PageMeta` map keyed by route. Each entry: `title` (50-60 chars, keyphrase-first), `description` (120-156 chars, keyphrase + value prop + CTA), `keyphrase` (researched, in-the-field, low-competition), `canonical` (full https URL), optional `ogImage` (1200×630), optional `jsonLd[]` (Organization/Service/BlogPosting/BreadcrumbList/FAQPage as appropriate)
+- **Component:** `src/components/page-head.tsx` is a side-effect-only React component returning `null`. It hooks `useLocation()` and on every pathname change runs `applyMeta(meta)` which: sets `document.title`, upserts `<meta name|property>` for description/keywords/og:*/twitter:*, upserts `<link rel="canonical">`, removes prior `<script data-page-jsonld>` and re-injects the route's JSON-LD blocks. Mounted ONCE at the top of `<App>`, outside `<Routes>`
+- **Blog post dynamic meta:** Don't pre-bake meta for every blog slug into `page-meta.ts` — derive at runtime from `blogPosts.find(p => p.slug === slug)`. Title = `{post.title.slice(0,47)}… | {Site} {Location}` clipped to 70 chars. Description = `post.excerpt.slice(0,156)`. Keyphrase = `post.keywords?.[0] ?? siteDefaultKeyphrase`. JSON-LD: BlogPosting + BreadcrumbList
+- **Keyphrase research (***INTENT-FIRST, NOT KEYWORD-STUFFING***):** For each route, ask: what would a genuine user type into Google to land here? `/donate` → "donate to {city} soup kitchen" (intent: I want to give). `/mass-schedule` → "Catholic Mass {city} NJ" (intent: I want to attend). `/services/health-clinic` → "free health clinic {city}" (intent: I need care). Avoid generic "best/top/leading" — use specific locality + service combinations
+- **Hard gate:** Every route in `App.tsx` MUST have a corresponding entry in `page-meta.ts` (or be derivable from data, like blog posts). Missing entry = `getMeta(pathname)` returns null = generic fallback meta = build incomplete. CI: `grep -oE 'path="[^"]+"' src/app.tsx | sort -u` cross-checked against `page-meta.ts` keys
+- **The njsk.org meta incident:** First build had a single static `<title>` and `<meta>` block in `index.html` — every route on the deployed SPA showed identical Google snippets. Fix was the `PageHead` + `page-meta.ts` pattern above; now every route shows a unique researched keyphrase + title + description in search results
+
+### Font-Flash Mitigation (***FOUT/FOIT MUST NEVER FLASH WRONG FONT***)
+Web fonts loading from Google Fonts/CDN cause a visible Flash Of Unstyled Text (FOUT) — body renders in fallback font, snaps to brand font ~200-800ms later, jarring layout shift. Mitigation runs in `index.html` before the React bundle, costs ~1KB, gracefully fades the page in once `document.fonts.ready` resolves.
+- **Recipe (drop into `<head>` of `index.html`):**
+  ```html
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family={Font}..." />
+  <link href="https://fonts.googleapis.com/css2?family={Font}..." rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <style>
+    html { background: #ffffff; }
+    html:not(.fonts-loaded) body { opacity: 0; }
+    html.fonts-loaded body {
+      opacity: 1;
+      animation: page-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    @keyframes page-in { 0%{opacity:0;transform:translateY(6px)} 100%{opacity:1;transform:translateY(0)} }
+    @media (prefers-reduced-motion: reduce) { html.fonts-loaded body { animation: none } }
+  </style>
+  <script>
+    (function(){var html=document.documentElement,done=false;function reveal(){if(done)return;done=true;html.classList.add('fonts-loaded')}
+    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(reveal); setTimeout(reveal,1200)})();
+  </script>
+  ```
+  The `setTimeout(reveal, 1200)` is a safety net — if `document.fonts.ready` never resolves (slow network, font CDN down), reveal at 1.2s anyway so the page never stays invisible
+- **Animate.css for in-page motion:** Use `animate__animated animate__fadeInUp animate__faster` etc. on hero sections, content cards, and route transitions. Glitch-free because animate.css uses transform/opacity only (GPU-composited, no layout thrash). All transitions gated on `prefers-reduced-motion: reduce`
+- **Hard gate:** Page-load video: capture first 1500ms with Playwright `recordVideo`. AI vision must NOT see a font-snap event (text shifts width/baseline mid-load). If snap is visible, preload directive missing or `<style>` block not blocking initial render
+
+### Hero Image Context (***NEVER GENERIC — MATCH PAGE INTENT***)
+Hero backgrounds carry semantic weight. A food video on a Mass-schedule page or a generic stock-photo hero on a Health-Clinic page reads as careless. Every hero MUST visually align with the page's specific topic, not just the site's overall vibe.
+- **Audit pass:** For each route, ask: does the hero image/video literally depict what this page is about? `/donate` → volunteers-serving-meals (the impact). `/mass-schedule` → stained-glass church interior (worship). `/services/health-clinic` → medical-care imagery (not food). `/we-need` → pantry/donation-stock (not soup kitchen line)
+- **Source priority:** (1) original-site photos that match the page topic (2) blog post photos from the same topic cluster (3) stock photos from Pexels/Unsplash with `topic` query (`unsplash.com/s/photos/{topic}` → first non-people-faced result, license-free) (4) AI generation as last resort
+- **Hard gate:** Visual QA pass — AI vision scores each hero on `image_matches_page_topic` (0-10). Any hero <8/10 flagged for replacement. Score 6 example: food-prep video on /mass-schedule (food is on-brand for the org but off-topic for the page). Score 9 example: stained-glass-window photo on /mass-schedule
+- **The njsk.org Mass-schedule incident:** Hero used `/videos/volunteers-serving.mp4` because it was the only available video — semantically wrong (the page is about Sunday Catholic worship, not the kitchen). Fix: downloaded a stained-glass church interior from Unsplash, applied ken-burns slow-zoom, dropped opacity to 40% with maroon gradient overlay. Now the hero matches what the page is actually about
+
+### Parallel Verification Scan (***POST-DEPLOY GATE — ZERO 404s + ZERO CONSOLE ERRORS***)
+Manual click-through testing misses 80%+ of broken assets, console errors, and CSP violations because they fire only on specific routes/breakpoints/timings. Every deploy MUST run a parallel headless scan that captures every console error/warning and every failed network request across every route.
+- **Reference script:** `scripts/scan-assets.mjs` (Playwright + chromium, concurrency 6) — for each public route + sample of blog routes, opens a fresh context, attaches listeners for `console`, `pageerror`, `requestfailed`, and `response` (status >=400), navigates with `waitUntil:'networkidle'`, returns `{route, errors[], warnings[], failed[]}`. Sort + print per-route, end with summary, `process.exit(1)` if any errors or failures
+- **Bash sweep complement:** `scripts/check-routes.sh` — `curl -sk -o /dev/null -w "%{http_code}"` every route + every blog slug, print non-200s. Faster than Playwright (no browser), catches Worker-level 404s/redirects but not console errors
+- **Empty-config widgets (***NEVER SHIP WITH EMPTY data-sitekey OR PLACEHOLDER URLS***):** A `<div class="cf-turnstile" data-sitekey="">` produces a console error on every page render. Same for empty Stripe public keys, empty Resend tokens, empty PostHog snippets. Pattern: gate the widget render on the env var being set — `{import.meta.env.VITE_TURNSTILE_SITEKEY ? <div className="cf-turnstile" data-sitekey={...} /> : null}`. The script tag in `<head>` is fine to leave (loads silently); only the widget div with empty key produces the error
+- **Hard gate:** Both scripts run as the LAST step of every deploy verification. `scan-assets.mjs` exit code 0 + `check-routes.sh` reporting 0 non-200s = deploy verified. Any error = open the worker logs / fix the broken reference / redeploy / re-scan. Never mark a deploy "done" without the green scan
+- **The njsk.org scan incident:** Initial deploy passed the bash route-sweep (every route returned 200) but the Playwright scan revealed 72 console errors across services/volunteer/we-need pages — broken `<img>` references to short-alias filenames, plus Turnstile empty-sitekey errors. The bash sweep alone would have shipped a broken site; only the parallel Playwright scan caught the asset 404s. **Both scans now run on every deploy.**
+
 ### Full Blog Archive Crawl (***MANDATORY — 100% COVERAGE OR BUILD FAILS***)
 The /blog index on most CMSes (Squarespace, WordPress, Wix, Ghost) paginates. Stopping at page 1 = silently dropping 50–90% of the archive. The original site's blog is a multi-year corpus of partner spotlights, event recaps, donation announcements, and obituaries — every post is irreplaceable institutional history. **Coverage threshold: 100%, not "most".**
 
