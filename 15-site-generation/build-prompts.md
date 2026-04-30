@@ -164,16 +164,46 @@ Images are not a site-wide pool — they belong to specific pages. When scraping
 
 **The njsk.org blog image incident:** Blog posts were migrated as text-only even though every post on njsk.org had 1-19 associated photos (volunteer group photos, event shots, donation images). These photos ARE the content for a non-profit blog — without them, posts are meaningless stubs.
 
-### Full Blog Archive Crawl (***MANDATORY — NEVER STOP AT PAGE 1***)
-The /blog index on most CMSes (Squarespace, WordPress, Wix, Ghost) paginates. Stopping at page 1 = silently dropping 50–90% of the archive. The original site's blog is a multi-year corpus of partner spotlights, event recaps, donation announcements, and obituaries — every post is irreplaceable institutional history.
-- **Detect pagination:** WebFetch `/blog` — look for `?offset=N` (Squarespace), `/page/N/` (WordPress), `?page=N` (Ghost), older-posts links, "Load More" buttons. If pagination exists, walk every page until offset returns 0 posts or page returns 404.
-- **Squarespace pattern:** `/blog?offset=NNNNNNNNNNNNN` — offset is a millisecond timestamp of the LAST post on the previous page (epoch ms). WebFetch the `Older Posts` link href, not just the visible post links.
-- **WordPress pattern:** `/blog/page/2/`, `/blog/page/3/` — increment until 404. Some themes use `?paged=N` instead.
-- **RSS as backup:** `/blog/rss`, `/feed.xml`, `/atom.xml`, `/sitemap.xml` — RSS feeds typically include 100+ posts even when frontend paginates 5–10 per page. Always try RSS first as it's faster and complete.
-- **Sitemap as ground truth:** Parse `/sitemap.xml` for ALL `<url>` entries matching `/blog/*`. Compare to crawled count — if sitemap has 80 posts and crawler found 15, the crawler missed 65 posts. Reconcile before declaring archive complete.
-- **Per-post fetch:** Don't trust the index excerpt — WebFetch every individual post URL to get full body, original publish date, author, and ALL inline images. Index pages truncate.
-- **Hard gate:** Count posts in new `blogPosts[]` array vs sitemap.xml `/blog/*` URLs. If <80% coverage → archive crawl is incomplete. Document missed posts in build report and add them.
-- **The njsk.org archive incident:** First build crawled only the visible /blog page and shipped with 15 posts. Walking `?offset=` pagination revealed 75+ additional posts including Thanksgiving 2019, COVID-19 impact, Father Camilo's Christmas letter, Morgan Stanley/Welcome Back Prudential/Tanenbaum Keale corporate days — irreplaceable history that would have been silently lost.
+### Full Blog Archive Crawl (***MANDATORY — 100% COVERAGE OR BUILD FAILS***)
+The /blog index on most CMSes (Squarespace, WordPress, Wix, Ghost) paginates. Stopping at page 1 = silently dropping 50–90% of the archive. The original site's blog is a multi-year corpus of partner spotlights, event recaps, donation announcements, and obituaries — every post is irreplaceable institutional history. **Coverage threshold: 100%, not "most".**
+
+**Squarespace canonical method (***ALWAYS USE THIS FIRST FOR SQUARESPACE — JSON API***):**
+The HTML pagination on Squarespace silently drops posts when "Load More" or themed pagination has bugs. The JSON endpoint is the source of truth — every post in the database appears here regardless of theme.
+- Endpoint: `GET https://{domain}/blog?format=json&offset=0` returns the first batch as JSON: `{ items: [...], pagination: { nextPage: bool, nextPageOffset: number } }`
+- Loop: start with `offset=0`, fetch, append `items` to a Map keyed by `item.id` (dedup), set `offset = items[items.length-1].publishOn` (a millisecond epoch), repeat until `items.length === 0` OR `pagination.nextPage === false`
+- Each item has: `id`, `urlId`, `fullUrl`, `title`, `body` (HTML), `excerpt`, `assetUrl` (hero image), `publishOn` (ms), `tags[]`, `categories[]`. `body` HTML contains `<img src|data-src|data-image="...">` — extract every src. CDN urls accept `?format=2500w` for high-res variants
+- Verification: count items vs sitemap.xml `/blog/*` URLs vs manually clicking "Older Posts" link until last page. All three counts MUST match. If sitemap says 129 and JSON returned 129, you're done. If they disagree, retry with delays (Squarespace rate-limits at >2 req/sec)
+- Reference script (proven on njsk.org): see `~/.agentskills/15-site-generation/squarespace-full-crawl.mjs` template
+
+**Other CMS patterns (***SAME 100% COVERAGE RULE***):**
+- **WordPress:** `/wp-json/wp/v2/posts?per_page=100&page=N` — REST API with explicit `X-WP-Total` and `X-WP-TotalPages` response headers. Frontend pagination (`/page/N/`) is fallback only.
+- **Ghost:** `/ghost/api/content/posts/?key={contentKey}&limit=all` — single-shot API returns the entire archive when `limit=all`. Front-end pagination is unnecessary.
+- **Wix:** No public API — must crawl HTML pagination. Use Playwright (not WebFetch) because Wix relies on JS-rendered "Load More" buttons.
+- **RSS as backup:** `/blog/rss`, `/feed.xml`, `/atom.xml` — typically include 100+ posts. Useful for cross-checking but body content is excerpt-only, not full HTML; never use RSS as the SOLE source.
+- **Sitemap as ground truth:** Parse `/sitemap.xml` for ALL `<url>` entries matching `/blog/*` (or `/news/*`, `/updates/*`, etc). The sitemap count is the floor — your crawl must equal or exceed it.
+- **Manual end-page check (***ALWAYS — FINAL VERIFICATION***):** Open the live site, navigate to /blog, click "Older Posts" repeatedly until the button disappears. The URL of the very last post is your canary — `grep` your generated `blogPosts[]` for that slug. If it's missing, the crawl is incomplete. *(The njsk.org cause: the user manually clicked Older through 13 pages and discovered `/blog/faith-lutheran-new-providence` from Dec 2018 was missing — 100% coverage gate caught what 80% threshold did not.)*
+
+**Per-post deep fetch (***INDEX EXCERPT IS NOT ENOUGH***):**
+- The JSON API `body` field is the complete HTML; the `excerpt` is truncated. Extract paragraphs from `body`, not `excerpt`
+- Convert `body` HTML to markdown-style content array: replace `<a href="X">Y</a>` with `[Y](X)`, decode entities (`&rsquo;` → `'`, `&mdash;` → `—`, etc.), split on `</p>` boundaries, filter empty
+- Capture EVERY `<img src|data-src|data-image="...">` from `body`, plus the top-level `assetUrl` (hero). Download all to `public/images/blog/{slug}-{1|body-N}.jpg`
+- Preserve original publish date (`publishOn` ms → `formatDate()`), author (`authorId` → resolve via `/blog?format=json` `authors` array)
+
+**Slug hygiene at scale (***MANDATORY — 100% UNIQUE, ZERO CMS GARBAGE***):**
+- Squarespace `urlId` is often a 30-char random hash for posts published before slugs were required (e.g. `zm2ilyi6ur54dz6kerktqt0kipj7on`). NEVER use these — derive a clean slug from the title
+- Multiple posts can share the same `urlId` across different years (e.g. annual "PSEG" or "Thanksgiving" partner days). Disambiguate by date suffix: `pseg-summer-2023`, `pseg-feb-2023`, `thanksgiving-2019`, `thanksgiving-2024`
+- Maintain a `slugOverrides` table for known-bad CMS slugs and a `datedSlugDisambig` table for collisions — both live in the generator script, version-controlled
+- Hard gate: `awk '/^    slug:/{print $2}' blog-posts.ts | sort | uniq -d` must return EMPTY. Any duplicate = build fails
+
+**Hard gates (***ALL MUST PASS BEFORE BUILD COMPLETES***):**
+1. `blogPosts.length` === sitemap.xml `/blog/*` count (100%, not 80%, not "most")
+2. Manual end-page slug present in `blogPosts[]` (grep for it)
+3. Every post has `images[]` populated if the original had any images (zero-image post on a site where peers have images = incomplete migration)
+4. Zero duplicate slugs across the array
+5. Pagination wired into `/blog` page (12-per-page default), every `/blog?page=N` resolves
+6. TypeScript compiles cleanly (`tsc --noEmit`)
+
+- **The njsk.org archive incident:** First build crawled only the visible /blog page and shipped with 15 posts. Walking `?offset=` pagination revealed 75+ additional posts. Second build crawled JSON API and shipped 26 curated posts but discarded the rest as "old". User clicked "Older Posts" through 13 pages on the live site and found `/blog/faith-lutheran-new-providence` (Dec 2018) — proof the gate was still wrong. Final build: full 129-post import via JSON API + 1027 images + per-post pagination — and this rule rewritten to make 100% coverage non-negotiable. **The "manual click Older Posts to last page" check is now a permanent step in the verification loop.**
 
 ### Inline Interlinking (***EVERY PAGE — TEXT IS LINK OPPORTUNITY***)
 Plain prose with zero internal links wastes SEO equity and user navigation. Every page MUST treat body text as a network of contextual cross-links to other pages and posts. This is non-negotiable for content-heavy non-profit and local-business sites.
