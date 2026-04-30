@@ -164,6 +164,59 @@ Images are not a site-wide pool — they belong to specific pages. When scraping
 
 **The njsk.org blog image incident:** Blog posts were migrated as text-only even though every post on njsk.org had 1-19 associated photos (volunteer group photos, event shots, donation images). These photos ARE the content for a non-profit blog — without them, posts are meaningless stubs.
 
+### Full Blog Archive Crawl (***MANDATORY — NEVER STOP AT PAGE 1***)
+The /blog index on most CMSes (Squarespace, WordPress, Wix, Ghost) paginates. Stopping at page 1 = silently dropping 50–90% of the archive. The original site's blog is a multi-year corpus of partner spotlights, event recaps, donation announcements, and obituaries — every post is irreplaceable institutional history.
+- **Detect pagination:** WebFetch `/blog` — look for `?offset=N` (Squarespace), `/page/N/` (WordPress), `?page=N` (Ghost), older-posts links, "Load More" buttons. If pagination exists, walk every page until offset returns 0 posts or page returns 404.
+- **Squarespace pattern:** `/blog?offset=NNNNNNNNNNNNN` — offset is a millisecond timestamp of the LAST post on the previous page (epoch ms). WebFetch the `Older Posts` link href, not just the visible post links.
+- **WordPress pattern:** `/blog/page/2/`, `/blog/page/3/` — increment until 404. Some themes use `?paged=N` instead.
+- **RSS as backup:** `/blog/rss`, `/feed.xml`, `/atom.xml`, `/sitemap.xml` — RSS feeds typically include 100+ posts even when frontend paginates 5–10 per page. Always try RSS first as it's faster and complete.
+- **Sitemap as ground truth:** Parse `/sitemap.xml` for ALL `<url>` entries matching `/blog/*`. Compare to crawled count — if sitemap has 80 posts and crawler found 15, the crawler missed 65 posts. Reconcile before declaring archive complete.
+- **Per-post fetch:** Don't trust the index excerpt — WebFetch every individual post URL to get full body, original publish date, author, and ALL inline images. Index pages truncate.
+- **Hard gate:** Count posts in new `blogPosts[]` array vs sitemap.xml `/blog/*` URLs. If <80% coverage → archive crawl is incomplete. Document missed posts in build report and add them.
+- **The njsk.org archive incident:** First build crawled only the visible /blog page and shipped with 15 posts. Walking `?offset=` pagination revealed 75+ additional posts including Thanksgiving 2019, COVID-19 impact, Father Camilo's Christmas letter, Morgan Stanley/Welcome Back Prudential/Tanenbaum Keale corporate days — irreplaceable history that would have been silently lost.
+
+### Inline Interlinking (***EVERY PAGE — TEXT IS LINK OPPORTUNITY***)
+Plain prose with zero internal links wastes SEO equity and user navigation. Every page MUST treat body text as a network of contextual cross-links to other pages and posts. This is non-negotiable for content-heavy non-profit and local-business sites.
+- **Per-page minimum:** 4–8 inline links in body copy on every page (not counting nav/footer/CTA buttons). Hero subtitle, mission/about paragraphs, FAQ answers, blog post body, and footer CTA blocks all get inline links.
+- **Link targets per page type:** About → /services (each sub-program with anchor), /team, /volunteer, /donate, /blog, /contact. Services → /team (staff names link to bios), /volunteer, /donate, /we-need, /blog. Blog post → 3–5 sibling posts, /donate, /volunteer, /services anchor, /team. FAQ answers → corresponding deep pages. Contact → /volunteer, /donate, /mass-schedule, /we-need.
+- **Markdown link parser for string-array content:** When blog/FAQ/static content is stored as `string[]`, use a `renderInline()` helper that parses `[label](href)` syntax and emits React Router `<Link>` for internal hrefs (`/path`) and `<a target="_blank" rel="noopener">` for external (`http://`, `https://`, `mailto:`, `tel:`). Pattern: `/\[([^\]]+)\]\(([^)]+)\)/g`. Single component, used everywhere prose has links.
+- **Style consistency:** All inline links use one shared className: `text-{brand}-800 font-medium underline decoration-{brand}-300 underline-offset-2 hover:text-{brand}-600 hover:decoration-{brand}-600 transition-colors`. Never style inline links per-page — define once.
+- **Anchor links to sub-sections:** `/services#mens-dining-hall`, `/services#womens-center`, `/services#health-clinic` — services page IDs every program section. Cross-page links target specific anchors, not just the page top.
+- **Related-posts algorithm:** Every blog post page gets a "Related Stories" 3-card grid. Tag-keyword scoring: define `RELATED_TAG_KEYWORDS` map (e.g., `volunteer: ['volunteer','team','cooking','serving']`, `partner: ['donation','corporate','church','school']`), score each candidate post by tag overlap with current post, sort by score desc + date desc, slice top 3.
+- **CTA section per page:** Every non-conversion page ends with a "Three ways to help today" or "Support our mission" block linking /donate, /volunteer, /we-need (or equivalent for the business type) — not just one CTA button.
+- **Hard gate:** Run `grep -c '<Link to=' src/pages/{page}.tsx` for each page. Pages with <4 inline `<Link>` instances are flagged as under-linked. Hero/footer chrome doesn't count — only body content links.
+
+### Stylized Google Maps (***EVERY LOCATION-AWARE SITE — NEVER RAW IFRAME***)
+Default Google Maps embeds clash with brand colors and look generic. Every customer-facing map MUST be stylized to match the brand and overlaid with a branded address card. No external Maps JS API key required — pure CSS filter on the iframe.
+- **CSS filter recipe:** Apply to iframe `style.filter`. Maroon/red theme: `grayscale(100%) sepia(40%) hue-rotate(310deg) saturate(180%) contrast(95%) brightness(96%)`. Blue theme: `grayscale(100%) sepia(60%) hue-rotate(180deg) saturate(150%)`. Green theme: `grayscale(100%) sepia(60%) hue-rotate(70deg) saturate(140%)`. Tweak hue-rotate by 30° increments to nudge toward brand primary.
+- **Brand-tinted overlay:** Iframe sits in a `relative overflow-hidden` container with rounded corners and shadow. Address card absolutely positioned `bottom-4 left-4` (or `bottom-6 left-6` on desktop) using `bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-{brand}-100 p-5`.
+- **Address card content:** Brand-colored pin icon (40×40 rounded square with brand-800 background, white SVG pin), business name in heading font, full address as `<address>` element, "Get directions →" external link to `https://www.google.com/maps/dir/?api=1&destination={url-encoded-address}`.
+- **Reusable component:** Build a single `<StylizedMap title? height? className? />` component used on /contact, /location, /mass-schedule, footer maps, and any pSEO location pages. Don't duplicate the iframe + filter + overlay across pages.
+- **Lightbox protection:** Add `data-no-zoom="true"` to iframe so site-wide image lightbox click-handler skips it.
+- **Hard gate:** No raw `<iframe src="https://www.google.com/maps">` on any page. All map embeds route through the stylized component. Visual QA: AI vision must confirm map is brand-tinted, not default green/blue Google colors.
+
+### Footer Logo Color Inversion (***ImageMagick alpha-channel recipe***)
+Most logos are designed for white backgrounds (dark text/marks on white). Footers are usually dark — placing a white-bg logo on a dark footer creates a glaring white rectangle. The fix is alpha-channel extraction + colorize, NOT `mix-blend-screen` (which leaves halos and breaks against gradients).
+- **The recipe (works for any single-color-on-white logo):**
+  ```bash
+  magick logo.png \
+    \( +clone -alpha off -colorspace gray -level 0%,90% -negate \) \
+    -alpha off -compose CopyOpacity -composite \
+    -fill white -colorize 100 \
+    logo-footer.png
+  ```
+  How it works: `+clone -alpha off -colorspace gray` makes a grayscale copy of the original. `-level 0%,90% -negate` produces an alpha mask where dark pixels (text/marks) become opaque white and white background becomes transparent black. `-compose CopyOpacity -composite` applies that mask as the alpha channel of the original. `-fill white -colorize 100` paints all visible pixels pure white, leaving alpha intact.
+- **Color variants:** Replace `-fill white -colorize 100` with `-fill "#FFD700" -colorize 100` for gold, etc. The shape comes from alpha; the fill gives the new color.
+- **Output:** Save as PNG (preserves alpha). Generate two sizes: full (1920+ wide) and small (400px wide for retina/footer). Place in `public/logo-footer.png` + `public/logo-footer-small.png`.
+- **Verification (before shipping):** Composite the result onto the actual footer color to confirm visibility:
+  ```bash
+  magick -size 600x200 xc:"#3a0a18" logo-footer.png -gravity center -composite verify.png
+  open verify.png
+  ```
+  If the logo is invisible or cut off, the alpha mask is wrong — re-run with `-level 0%,80%` or adjust threshold.
+- **Common failure modes:** (1) Output appears solid maroon = alpha was applied inversely; the recipe above already corrects this. (2) Output is fully transparent = alpha was zeroed everywhere; check that input logo actually has dark marks on white (run `magick identify -verbose logo.png | grep -i mean` — mean should be near white if the bg is white). (3) Halos/edges visible at small sizes = `-level` threshold too aggressive; lower the upper bound from 90% to 70%.
+- **Why not mix-blend-screen:** CSS blend modes work on rendered pixels but interact unpredictably with backdrop filters, browser rendering quirks on Safari, and partial-opacity gradient backgrounds. They also can't be used in OG share images, email headers, or PDF exports. ImageMagick produces a real PNG with a real alpha channel — works everywhere.
+
 ### Design System (***skill 10 — MANDATORY***)
 Read ~/.agentskills/10-experience-and-design-system/SKILL.md for full design system.
 Apply ALL patterns from "Local Business Design Patterns (SITE GENERATION)" section.
