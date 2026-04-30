@@ -111,6 +111,16 @@ Local business sites need components SaaS templates don't have. These are pre-bu
 
 **RSSFeed:** Not a component — generated as `public/feed.xml` during build. Atom 2.0 format. Includes all blog posts with title, link, published date, summary, author. `<link rel="alternate" type="application/atom+xml">` in index.html `<head>`.
 
+## Citation Components (***skill 15 + rules/citations.md***)
+
+**Citation.tsx:** Inline superscript citation. Props: `refId: string`, `children: ReactNode`. Renders `<span>children<sup><a href="#refId">[N]</a></sup></span>` where N is the auto-numbered position from `_citations.json`. Click → smooth-scroll to ReferencesList entry, focus + 2s highlight. Keyboard accessible (focus ring, Enter/Space). Mandatory wrapper for any quantitative claim in copy.
+
+**ReferencesList.tsx:** Footer-of-page bibliography. Props: `refIds: string[]` (defaults to all cited on page). Renders `<section aria-labelledby="references">` with `<h2 id="references">References</h2>` and ordered list of APA 7th ed entries from `_citations.json`. Hanging indent (`text-indent: -2em; padding-left: 2em`). DOI/URL rendered as link. JSON-LD `citation: CreativeWork[]` array auto-generated alongside (boosts AI search inclusion 16%→54%, Brewer, 2024).
+
+**SourcedStat.tsx:** Specialized for hero/section stats. Props: `value: string|number`, `label: string`, `refId: string`. Renders large number with inline citation badge. Auto-applies to any `<Stat>` or numeric copy that needs callout treatment. Animated count-up on IntersectionObserver, citation appears with the number (no orphaned stats).
+
+**Component count:** 21 total in template (16 local + BlogList + BlogPost + DonationForm + Citation + ReferencesList + SourcedStat). Update tailwind safelist + index exports accordingly.
+
 ## Blog Routing (React Router)
 
 Template App.tsx includes catch-all blog routes:

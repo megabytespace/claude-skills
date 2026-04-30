@@ -234,6 +234,17 @@ Apply ALL patterns from "Local Business Design Patterns (SITE GENERATION)" secti
 - Anti-slop check: grep for banned words before build (see skill 09 copy-rules)
 - Apple Test: "Would Apple ship this?" If no → redesign before deploy
 
+### Sourced Facts (***NON-NEGOTIABLE — rules/citations.md***)
+Every quantitative claim (%, N, $, ratio, comparison, year-claim, "X% of users") MUST cite a source inline using APA 7th ed format. Read `_citations.json` for full bibliography keyed by `refId`.
+- Wrap claim with `<Citation refId="ref-1">claim text</Citation>` — renders inline superscript link
+- Add `<ReferencesList />` to every page footer that contains cited claims (auto-renders from `_citations.json`)
+- For hero/section stats use `<SourcedStat value={...} label={...} refId="ref-N" />` — animated number with citation badge
+- Source hierarchy: peer-reviewed (Nature, JAMA, ACM, IEEE) > .gov/.edu (CDC, BLS, NIST) > primary data (10-K, official APIs) > industry research (Gartner, Forrester, Pew, Statista). Wikipedia ONLY to find the primary source it cites.
+- Banned phrases (replace with cited fact OR delete): "studies show|research suggests|most users|industry-leading|trusted by|proven|widely-recognized|recent studies|experts agree|countless|numerous|many|often|typically"
+- JSON-LD: Article/BlogPosting/FAQPage/Claim schemas MUST include `citation: CreativeWork[]` array. Boosts AI search citation inclusion 16%→54% (Brewer, 2024).
+- Build gate: `node /home/cuser/validate-citations.js dist/` greps for unsourced `\d+%|\$\d+[MBK]|\d+x|\d+ users|since \d{4}` patterns. Any unmatched numeric → fail. Fix or remove the claim.
+- Anecdotes and brand voice ("We're sharp.") don't need cites — only quantitative/comparative claims do. Hero headlines stay clean; citations live in body copy + ReferencesList.
+
 ### Content Rules (***PRESERVE EVERYTHING***)
 - Word count must MATCH OR EXCEED original site (never less content than before)
 - 5000+ words minimum real content (from research + scraped content) — most rebuilds will far exceed this
@@ -438,7 +449,8 @@ Read _domain_features.json and implement ALL listed features for this business c
 After customizing all files:
 1. Run `npm run build` — fix ANY errors
 2. Run `node /home/cuser/validate-urls.js` — compare _scraped_content.json.original_urls against new sitemap + _redirects. Fail if any URL unaccounted.
-3. Run `node /home/cuser/inspect.js dist/index.html` — read the GPT-4o critique
+3. Run `node /home/cuser/validate-citations.js dist/` — grep for unsourced numeric claims. Fail if any `\d+%|\$\d+[MBK]|\d+x|\d+ users|since \d{4}` lacks a `<Citation refId="...">` wrapper resolving to `_citations.json`.
+4. Run `node /home/cuser/inspect.js dist/index.html` — read the GPT-4o critique
 4. Fix ALL issues scoring below 8/10 in the critique
 5. Run `npm run build` again — verify zero errors
 6. If inspect score < 8: repeat fix+build (max 3 iterations)

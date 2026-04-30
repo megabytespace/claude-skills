@@ -54,9 +54,33 @@ Priority order for primary color: logo dominant color → header/nav background 
 
 ## Phase 0e: Confidence Scoring
 
-Every data point gets `Conf<T>`: `{ value: T, confidence: number (0-1), sources: Source[] }`. Source types: google_places, llm_inference, user_provided, web_scrape, social_verify. Merge rule: higher confidence wins, corroboration boosts +0.1 (capped at 0.99). UI policy: prominent >=0.85, standard 0.70-0.84, deemphasize 0.50-0.69, hide <0.50.
+Every data point gets `Conf<T>`: `{ value: T, confidence: number (0-1), sources: Source[], apa_citation: string, source_url: string, refId: string }`. Source types: google_places, llm_inference, user_provided, web_scrape, social_verify, peer_reviewed, gov_edu, primary_data, industry_research. Merge rule: higher confidence wins, corroboration boosts +0.1 (capped at 0.99). UI policy: prominent >=0.85, standard 0.70-0.84, deemphasize 0.50-0.69, hide <0.50.
 
-Warnings generated for missing: phone (<0.5), email (<0.5), geo (<0.3), booking_url (<0.5), reviews (<0.3).
+**APA citation requirement (***NON-NEGOTIABLE — see rules/citations.md***):** every quantitative field (%, N, $, ratio, comparison, year-claim) MUST carry `apa_citation` (APA 7th ed) and `source_url`. Examples: `apa_citation: "U.S. Bureau of Labor Statistics. (2024). Occupational employment statistics: Restaurant industry. https://www.bls.gov/oes/"` or `apa_citation: "Brewer, S. (2024). AI search citation rates. Journal of Search Engine Optimization, 15(2), 88-104. https://doi.org/10.xxxx/xxxxx"`. Confidence>=0.85 requires 2+ corroborating cites; single source=0.70; unsourced=rejected.
+
+Warnings generated for missing: phone (<0.5), email (<0.5), geo (<0.3), booking_url (<0.5), reviews (<0.3), apa_citation on any quantitative claim (auto-fail).
+
+## Phase 0g: Citation Aggregation (`_citations.json`)
+
+Sibling file to `_research.json`. APA 7th ed bibliography keyed by `refId`. Schema:
+```json
+{
+  "ref-1": {
+    "type": "journal|web|government|industry|primary",
+    "authors": ["Brewer, S.", "Lee, M."],
+    "year": 2024,
+    "title": "AI search citation rates with structured data",
+    "publication": "Journal of Search Engine Optimization",
+    "volume": "15(2)",
+    "pages": "88-104",
+    "doi": "10.xxxx/xxxxx",
+    "url": "https://...",
+    "accessed": "2026-04-25",
+    "apa_formatted": "Brewer, S., & Lee, M. (2024). AI search citation rates with structured data. Journal of Search Engine Optimization, 15(2), 88-104. https://doi.org/10.xxxx/xxxxx"
+  }
+}
+```
+Container script `~/format-citations.js` (citation-js npm) converts BibTeX/RIS/CSL-JSON → APA 7th. Write `_citations.json` during research phase. Components reference by `refId`. Build gate `validate-citations.js` ensures every numeric claim in dist/ HTML resolves to a `refId` entry.
 
 ## Phase 0f: Enrichment Sources
 

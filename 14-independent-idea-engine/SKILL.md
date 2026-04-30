@@ -29,10 +29,10 @@ Autonomous not rogue: alignment check (02). High-confidence: auto-implement. Med
 Competitor, technology, UX, performance, media, content, growth research. Include AI search visibility (GEO): how does this product surface in ChatGPT, Perplexity, Google AI Overviews? JSON-LD accuracy: 16%→54% with structured data.
 
 ### 2. Formulation
-What (1 paragraph), Why (evidence), Impact, Effort (S/M/L), Confidence (H/M/L), Alignment (which criteria), Risk, Viral Potential (does it create sharing loops?).
+What (1 paragraph), Why (evidence with APA cites), Impact, Effort (S/M/L), Confidence (H/M/L), Alignment (which criteria), Risk, Viral Potential (does it create sharing loops?). Every claim in Why/Impact MUST carry APA 7th inline `(Author, Year)` citation. Write `_evidence.json` with full APA reference list per idea — sibling to research output.
 
 ### 3. Self-Critique (RUTHLESS)
-Serves thesis? Aligns preferences? Evidence-backed? Effort justified? No conflicts? User would approve? Better for users? Highest-impact? Creates viral loops or reduces CAC? Improves AI search visibility? Any fail = reject + document why. **Three consecutive passes required** -- argue against idea three times. If it survives all three, proceed.
+Serves thesis? Aligns preferences? Evidence-backed with 2+ APA-cited sources for confidence>=0.8? Effort justified? No conflicts? User would approve? Better for users? Highest-impact? Creates viral loops or reduces CAC? Improves AI search visibility? Any fail = reject + document why. **Three consecutive passes required** -- argue against idea three times. If it survives all three, proceed. Unsourced ideas auto-rejected (rules/citations.md).
 
 ### 4. Disposition
 Defect/any: IMPLEMENT IMMEDIATELY. High/high-med: auto-implement+report. High/low: skip unless trivial. Medium/high-med: propose with evidence. Low: document only.
@@ -58,6 +58,25 @@ Revenue ranges: $10K-$100K/month micro-SaaS, $50K-$3M annually solo-founder. Lau
 ## Source Freshness
 Verify periodically: NNGroup, web.dev, OWASP, Google Search Central, W3C WCAG, Cloudflare blog, OpenAI/Anthropic changelogs, Angular/Ionic releases, PostHog blog, Stripe changelog.
 Contradicts skill: breaking=immediately propose. Degraded=MEMORY.md pending. Cosmetic=batch.
+
+## Evidence Pipeline (`_evidence.json`)
+Every proposed idea writes sibling `_evidence.json`:
+```json
+{
+  "ideaId": "improve-conversion-rate",
+  "claims": [
+    {
+      "claim": "Adding social proof increases conversion 34%",
+      "refId": "ref-1",
+      "confidence": 0.87
+    }
+  ],
+  "references": {
+    "ref-1": "Cialdini, R. B. (2021). Influence: The psychology of persuasion (rev. ed.). HarperBusiness."
+  }
+}
+```
+Source hierarchy: peer-reviewed > .gov/.edu > primary data > industry research. Wikipedia rejected. Confidence>=0.8 requires 2+ corroborating cites. Self-critique filter rejects ideas where claims cannot be cited. See rules/citations.md.
 
 ## Skill Telemetry
 Track heatmap. Always-paired=merge candidates. Zero across 3+ projects=remove from profile/evaluate archival.
