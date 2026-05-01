@@ -73,5 +73,5 @@ Skill 01>all. Project>global. Specific>general. Brian>defaults. `***TEXT***`=hig
 <context>
 Bash: camelCase fns, UPPER_CASE vars, `gum log` never echo, ShellCheck+shfmt.
 File format: pipe-delimited one-liners, `→` and `|` separators, no prose wrappers, match sibling density.
-See @rules/ for: code-style, brian-preferences, always, verification-loop, error-recovery, quality-metrics, copy-writing, model-routing, prompt-cache, auto-meta-work, full-autonomy, computer-use-safety, hono-api.
+See @rules/ for: code-style, brian-preferences, always, verification-loop, error-recovery, quality-metrics, copy-writing, model-routing, prompt-cache, auto-meta-work, full-autonomy, computer-use-safety, hono-api, fetch-defaults, citations.
 </context>
