@@ -18,8 +18,21 @@ compatibility:
 **Tier 3 (when appropriate):** CTA micro-interactions, confetti, animated illustrations, ambient motion, easter eggs.
 Anti-slop: each animation serves one purpose — state change, attention direction, or brand reinforcement. Uniform fade-in on everything = red flag.
 
+## Hero Drama (NON-NEGOTIABLE — every site)
+Static hero = AI slop. Every hero MUST have ONE dramatic motion element layered on the brand-splash background: (a) Ken Burns slow-zoom (`scale(1) → scale(1.08)` over 18-24s, ease-in-out, infinite reverse) on the brand-splash image | (b) parallax scroll on splash (`animation-timeline: scroll(root block); transform: translateY(calc(var(--scroll) * 0.3))`) | (c) animated gradient mesh overlay (3-5 brand-color blobs, `filter: blur(80px)`, drifting via `@keyframes drift` 30-60s) | (d) particle field (canvas-based, `requestAnimationFrame`, ≤30 particles) | (e) split-text headline reveal (each word `@starting-style` translateY(40px) opacity:0 → 0 0, stagger 80ms via `sibling-index()`). Pick ONE per site (never stack — overload = noise). Pair with `prefers-reduced-motion` static fallback. The hero is the first impression — flat = forgettable.
+
+## Number-Roll Counters (NON-NEGOTIABLE — every stat)
+Every stat (review count, years in business, projects shipped, donors, students, square feet) MUST roll up from 0 to target on scroll-into-view. Implement via `animation-timeline: view()` with CSS counter or via tiny IntersectionObserver + `requestAnimationFrame` (≤200 lines, no library). Duration: clamp(800ms, target * 8ms, 2000ms). Easing: `var(--ease-out)`. Format: locale-aware `Intl.NumberFormat` with thousand separators. Pair `@starting-style` for opacity 0→1. Trigger ONCE per page-load (no infinite re-roll on rescroll). NEVER static numbers in stat sections — counters communicate energy and momentum.
+```css
+.stat-num { font-variant-numeric: tabular-nums; counter-set: stat var(--target); }
+.stat-num::after { content: counter(stat); animation: count-up 1.4s var(--ease-out) both; animation-timeline: view(); animation-range: entry 20% cover 60%; }
+@keyframes count-up { from { counter-set: stat 0; } to { counter-set: stat var(--target); } }
+```
+
 ## animate.css (animate.style) — Tier 0 Pragmatic Default
-When the design calls for a stock entrance/exit (modals, toasts, alerts, dialog reveals), reach for animate.css before hand-rolling @keyframes. ~70KB minified, BSD-licensed, zero JS, drop-in classes. Preferred over custom keyframes for: dialog enter/exit, toast slideIns, attention seekers (pulse/shake on validation errors), entrance staggers.
+
+## animate.css (animate.style) — Tier 0 Pragmatic Default (USE BEFORE HAND-ROLLING)
+When the design calls for a stock entrance/exit (modals, toasts, alerts, dialog reveals, scroll reveals), reach for animate.css FIRST before writing custom @keyframes. ~70KB minified, BSD-licensed, zero JS, drop-in classes. Preferred over custom keyframes for: dialog enter/exit, toast slideIns, attention seekers (pulse/shake on validation errors), entrance staggers, scroll-revealed sections. Saves 200+ lines of custom CSS per site.
 Install: `npm i animate.css` → wire global once via `angular.json:styles[]` or `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">` (prefer bundled — no extra DNS hop). Apply via `class="animate__animated animate__zoomIn animate__faster"`. Override duration with `--animate-duration: 0.25s;` on the element or `:root` for global. Programmatic exit: toggle class then `animationend` listener for cleanup.
 Tier mapping: dialog open → `animate__zoomIn` 0.25s | toast → `animate__fadeInUp` 0.3s | error shake → `animate__headShake` | success → `animate__tada` (sparingly) | dialog close → `animate__fadeOut` 0.2s. Pair with `prefers-reduced-motion` block (already in this skill) — animate.css respects `--animate-duration` so the global reset auto-disables.
 NEVER stack 3+ animate.css classes on the same element (collisions); NEVER use the `animate__infinite` modifier on attention seekers without intent.
