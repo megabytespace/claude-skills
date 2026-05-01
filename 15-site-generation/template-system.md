@@ -119,7 +119,90 @@ Local business sites need components SaaS templates don't have. These are pre-bu
 
 **SourcedStat.tsx:** Specialized for hero/section stats. Props: `value: string|number`, `label: string`, `refId: string`. Renders large number with inline citation badge. Auto-applies to any `<Stat>` or numeric copy that needs callout treatment. Animated count-up on IntersectionObserver, citation appears with the number (no orphaned stats).
 
-**Component count:** 21 total in template (16 local + BlogList + BlogPost + DonationForm + Citation + ReferencesList + SourcedStat). Update tailwind safelist + index exports accordingly.
+## Universal Helper Components (***SHIP IN TEMPLATE — referenced by always.md, MUST exist as code***)
+
+`always.md` mandates `<MailLink>`/`<TelLink>`/`<AddressBlock>` + universal hyperlink + lightbox capture-restore + count-up + per-route metadata + route-conditional maps + inline markdown links. None work unless template ships the implementation. Template MUST include:
+
+**MailLink.tsx:** `export function MailLink({email, className=''}: {email:string;className?:string}) { return <a href={\`mailto:\${email}\`} className={\`underline-hover \${className}\`}>{email}</a>; }`. Never hand-code `<a href="mailto:...">` ad-hoc — always import this.
+
+**TelLink.tsx:** strips formatting to E.164 in `href`, renders formatted display text. `const e164 = '+1' + phone.replace(/\D/g,'').replace(/^1/,''); return <a href={\`tel:\${e164}\`} className={\`underline-hover \${className}\`}>{phone}</a>;`. Pair with optional `sms:` button per always.md.
+
+**AddressBlock.tsx:** Bordered card with map-pin SVG, three size variants. Props: `lines: string[]; label?: string; mapsQuery?: string; mapsMode?: 'dir'|'search'; size?: 'sm'|'md'|'lg'`. `mapsMode='dir'` → `https://www.google.com/maps/dir/?api=1&destination=<urlencoded>` (default for street addresses), `'search'` → `https://www.google.com/maps/search/?api=1&query=<urlencoded>` (PO Boxes / no-direction-target). `size='sm'` indented hint-text 14px, `'md'` bordered card 16px (default), `'lg'` hero block 20px+. Wraps every line in the maps anchor with `target="_blank" rel="noopener"`. The whole tile is the click target (per always.md "tile-as-link" rule), not just inner text.
+
+**Lightbox.tsx (capture-restore handshake — fixes scroll-to-top bug):** YARL portal mount with body-scroll-lock. ALWAYS capture scrollY BEFORE setting open state, restore on close. Pattern:
+```tsx
+const scrollYRef = useRef(0);
+const onOpen = (i:number) => { scrollYRef.current = window.scrollY; setIndex(i); setOpen(true); };
+useEffect(() => {
+  if (!open) return;
+  const html = document.documentElement; const body = document.body;
+  const prevScrollBehavior = html.style.scrollBehavior; html.style.scrollBehavior = 'auto';
+  body.style.position = 'fixed'; body.style.top = \`-\${scrollYRef.current}px\`; body.style.width = '100%';
+  return () => {
+    body.style.position = ''; body.style.top = ''; body.style.width = '';
+    window.scrollTo(0, scrollYRef.current); html.style.scrollBehavior = prevScrollBehavior;
+  };
+}, [open]);
+```
+Without `scrollBehavior='auto'` override, smooth-scroll CSS pulls page to top on close. Without capture-BEFORE-setOpen, YARL's portal+focus-management has already moved scroll position by the time the effect runs. Mount in Layout, wrap ALL major image groups with `[data-gallery="<id>"]` (services|gallery|team|blog hero|testimonials|before-after). Bundle MUST contain `data-zoomable` AND `data-gallery` strings (verified by build_validators.ts). Lightbox-eligible: `kind!=logo AND dims≥1024×768 AND quality_score≥7` — logo grids use grayscale→color hover instead.
+
+**FullWidthMap.tsx (route-conditional, per skill 15 §Quality Bar(2)):** Used ONLY on dedicated `/contact` AND `/mass-schedule` (or equivalent location-pages). Full-bleed (breaks out of `max-w-*` containers via negative margin or `100vw` width), 560px height, `loading="lazy"`, `referrerpolicy="no-referrer-when-downgrade"`. Embed src: `https://www.google.com/maps/embed?pb=...` from research geo. Below map: `<AddressBlock size="lg">` + `Get Directions →` deep link + hours grid. NEVER use this on home/about/services — those use `<MapEmbed>` with `max-w-*` container per skill 10 §Local Business or `<StylizedMap>` SVG thumbnail.
+
+**StylizedMap.tsx (route-conditional alternate):** Hand-drawn SVG of neighborhood/region with brand-color paths, business pin marker, decorative streets — NO third-party iframe. Used on home hero overlay, footer mini-map, section thumbnails. May overlay an `<AddressBlock>`. Renders at any size, no LCP cost.
+
+**PageHead.tsx + page-meta.ts (HARD GATE per rules/per-route-metadata.md):** Central registry of `RouteMetadata` for every route. Template ships `src/data/page-meta.ts`:
+```ts
+import type { RouteMetadata } from '@/types/route-metadata'; // matches per-route-metadata.md interface
+export const routes: Record<string, RouteMetadata> = {
+  '/':            { path:'/', title:'…', description:'…', canonical:'…', themeColor:'…', applicationName:'…', appleMobileWebAppTitle:'…', og:{…}, twitter:{…}, jsonLd:[…] },
+  '/about':       { … },
+  '/contact':     { … },
+  '/donate':      { … },
+  '/blog':        { … },
+};
+export function meta(path: string): RouteMetadata {
+  if (routes[path]) return routes[path];
+  // dynamic blog routes: /blog/:slug → derive from blog post data
+  if (path.startsWith('/blog/')) return buildBlogMeta(path);
+  return routes['/']; // fallback (validator catches missing entries pre-deploy)
+}
+```
+`PageHead.tsx` subscribes to `useLocation()`, calls `meta(pathname)`, swaps `document.title` + every `<meta>` + `<link rel="canonical">` + JSON-LD `<script>` tags. ALSO emit static `<head>` per route during build (vite-react-ssg or per-route HTML pre-render) — client swap is fallback only; SEO crawlers MUST see static head. Validator `scripts/validate-route-metadata.mjs` greps `dist/**/*.html` for required fields + uniqueness, fails build on miss.
+
+**CountUp.tsx:** Production default per skill 11 §Number-Roll Counters. IntersectionObserver+rAF, `threshold:0.5`, ease-out cubic, `prefers-reduced-motion` jumps to final, suffix (`+`/`%`/`x`) renders OUTSIDE animated digit node (NEVER suffix-inside-digit — `5,000+` ticking through `1,234+` looks broken). Reuse from skill 11 reference impl.
+
+**renderInline.ts (markdown link parser, used by FAQ/blog/donate-FAQ/AddressBlock children):**
+```ts
+export function renderInline(text: string): ReactNode[] {
+  const parts: ReactNode[] = []; const re = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let last = 0; let m: RegExpExecArray | null; let key = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    const [, label, url] = m; const ext = /^https?:/.test(url); const tel = url.startsWith('tel:'); const mail = url.startsWith('mailto:');
+    parts.push(<a key={key++} href={url} className="underline-hover" {...(ext ? { target:'_blank', rel:'noopener noreferrer' } : {})}>{label}</a>);
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
+```
+6 lines of logic, auto-detects `mailto:`/`tel:`/`http`/internal. Plain-text mode if no matches.
+
+## DonationForm — Non-Profit /donate Page Spec (***EXPANDED***)
+
+Replaces the prior bare DonationForm. Used by nonprofits at `/donate`, churches at `/give`. Composed sections (top-to-bottom):
+
+1. **Hero:** Mission-aligned headline + 1-sentence impact statement (e.g. "$25 feeds a Newark family for a week"). Brand-primary CTA scrolls to form below.
+2. **Impact tiers (4 cards):** Per `_research.json.donations.impact_tiers` (default fallback for soup kitchens: `$25→5 meals`, `$100→20 meals`, `$500→100 meals`, `$1,000→200 meals`; per-category presets ship in `donation-tier-presets.json` for food-pantry|disaster-relief|education|medical|environmental|animal-welfare). Each card: amount, what it provides, supporting line, "Give $X →" button that pre-fills form.
+3. **"Where Your Money Goes" — 4-bar breakdown:** Animated horizontal bars per `_research.json.donations.allocations[]` with percentages (default for soup kitchens: program 92%, admin 5%, fundraising 3%, infrastructure 1% — pull actual percentages from Form 990 / GuideStar when available, cite source per rules/citations.md). Bars animate width on IntersectionObserver via `<CountUp>`-style ease-out.
+4. **Donation form (one-time + monthly toggle, DEFAULT MONTHLY):** Suggested amounts $25/$50/$100/$250/$500 (customizable per `_research.json.donations.suggested_amounts`). Custom amount input. Stripe Payment Links integration (`stripePaymentLink` prop) OR external donation platform link (`externalDonationUrl` for Donorbox/Givebutter/Classy/Bonterra). Tribute fields: "In honor of" / "In memory of" (optional). Cover-fees checkbox (default ON, adds ~3% to keep nonprofit's net intact). Fires `donation_click` + `donation_amount` + `donation_recurrence` analytics events.
+5. **Live Monthly Goal widget (CONDITIONAL — env-gated):** Render ONLY when `import.meta.env.VITE_PROJECTSITES_API` is set. Pulls live `monthly_goal_cents` + `monthly_raised_cents` from projectsites.dev API, renders progress bar + `$X of $Y raised this month`. When env NOT set, the entire widget is `null` — never render an empty bar showing `$0 / $0` (looks broken+demoralizing). This is the canonical "gate empty widgets behind env" pattern from auto-memory feedback (njsk.org incident 2026-04).
+6. **Donor FAQ (16 accordions, AI-generated from research + nonprofit-FAQ-library):** Required topics: tax deductibility (501(c)(3) status with EIN cited inline) | recurring vs one-time | how to cancel/modify recurring | in-honor / in-memory gifts | stock gifts | crypto gifts (mailing address linked via `<AddressBlock mapsMode='search'>` — PO Box uses search, not directions) | DAF (donor-advised fund) instructions | corporate matching | IRA qualified charitable distribution | planned giving / bequests | gift acknowledgement / receipt timing | where receipts come from (email + sender domain) | privacy of donor info | refunds / mistakes | volunteer hours match | who to contact for large gifts (`<MailLink>` major-gifts contact). Each FAQ answer ≤120 words, runs through `renderInline` so embedded links render. Generates `FAQPage` JSON-LD.
+7. **Other ways to give (footer of /donate):** Mail-in check (PO Box wrapped in `<AddressBlock mapsMode='search'>`), planned giving anchor link, in-kind donations contact (`<MailLink>`).
+
+DonationForm props (full): `stripePaymentLink?:string; externalDonationUrl?:string; suggestedAmounts:number[]; defaultRecurrence:'monthly'|'one-time'; impactTiers:Array<{amount:number;outcome:string}>; allocations:Array<{label:string;pct:number;refId?:string}>; ein:string; orgName:string; mailingAddress:string[]; majorGiftsEmail:string; liveGoalEnabled?:boolean (defaults to !!import.meta.env.VITE_PROJECTSITES_API);`.
+
+**Component count:** 28 total in template (16 local + BlogList + BlogPost + DonationForm[expanded] + Citation + ReferencesList + SourcedStat + MailLink + TelLink + AddressBlock + Lightbox + FullWidthMap + StylizedMap + PageHead + CountUp + renderInline-helper). Update tailwind safelist + index exports + `validate-route-metadata.mjs` registry accordingly. Validator `scripts/validate-template-components.mjs` greps `template/src/components/` to confirm every helper exists pre-build.
 
 ## Blog Routing (React Router)
 
