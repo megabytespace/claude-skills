@@ -22,11 +22,28 @@ Anti-slop: each animation serves one purpose — state change, attention directi
 Static hero = AI slop. Every hero MUST have ONE dramatic motion element layered on the brand-splash background: (a) Ken Burns slow-zoom (`scale(1) → scale(1.08)` over 18-24s, ease-in-out, infinite reverse) on the brand-splash image | (b) parallax scroll on splash (`animation-timeline: scroll(root block); transform: translateY(calc(var(--scroll) * 0.3))`) | (c) animated gradient mesh overlay (3-5 brand-color blobs, `filter: blur(80px)`, drifting via `@keyframes drift` 30-60s) | (d) particle field (canvas-based, `requestAnimationFrame`, ≤30 particles) | (e) split-text headline reveal (each word `@starting-style` translateY(40px) opacity:0 → 0 0, stagger 80ms via `sibling-index()`). Pick ONE per site (never stack — overload = noise). Pair with `prefers-reduced-motion` static fallback. The hero is the first impression — flat = forgettable.
 
 ## Number-Roll Counters (NON-NEGOTIABLE — every stat)
-Every stat (review count, years in business, projects shipped, donors, students, square feet) MUST roll up from 0 to target on scroll-into-view. Implement via `animation-timeline: view()` with CSS counter or via tiny IntersectionObserver + `requestAnimationFrame` (≤200 lines, no library). Duration: clamp(800ms, target * 8ms, 2000ms). Easing: `var(--ease-out)`. Format: locale-aware `Intl.NumberFormat` with thousand separators. Pair `@starting-style` for opacity 0→1. Trigger ONCE per page-load (no infinite re-roll on rescroll). NEVER static numbers in stat sections — counters communicate energy and momentum.
+Every stat (review count, years in business, projects shipped, donors, students, square feet) MUST roll up from 0 to target on scroll-into-view. **Production default = JS IntersectionObserver+rAF** in a `<CountUp target n suffix='+'|'%'|'x'|'' duration={1400} locale='en-US'>` component (≤80 LOC, no lib, ships in template) — handles every browser, respects prefers-reduced-motion (skips animation, renders final value immediately), trigger ONCE via `entry.isIntersecting && !hasRun` flag, uses `Intl.NumberFormat` for thousand separators, suffix renders OUTSIDE the animated digit node (so `+`/`%`/`x` doesn't tick). CSS `animation-timeline: view()` + `counter-set` is **progressive enhancement** behind `@supports (animation-timeline: view())` — Chrome/Edge only as of 2026-05, Safari/Firefox fall back to JS. Duration: clamp(800ms, target * 8ms, 2000ms). Easing: `var(--ease-out)`. Pair `@starting-style` for opacity 0→1. NEVER static numbers in stat sections — counters communicate energy and momentum. NEVER suffix-inside-digit (renders `5,000+` as `0+ → 5,000+` ticking through `1,234+`, looks broken).
+```tsx
+// CountUp.tsx — production default
+export function CountUp({target, suffix='', duration=1400}: {target:number;suffix?:string;duration?:number}) {
+  const [n,setN] = useState(0); const ref = useRef<HTMLSpanElement>(null); const ran = useRef(false);
+  useEffect(() => { const io = new IntersectionObserver(([e]) => {
+    if (!e.isIntersecting || ran.current) return; ran.current = true;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { setN(target); return; }
+    const t0 = performance.now(); const tick = (t:number) => { const p = Math.min(1,(t-t0)/duration);
+      setN(Math.round(target * (1-Math.pow(1-p,3)))); if (p<1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }, {threshold: 0.5}); if (ref.current) io.observe(ref.current); return () => io.disconnect(); }, [target,duration]);
+  return <span ref={ref}><span>{n.toLocaleString()}</span>{suffix}</span>;
+}
+```
 ```css
-.stat-num { font-variant-numeric: tabular-nums; counter-set: stat var(--target); }
-.stat-num::after { content: counter(stat); animation: count-up 1.4s var(--ease-out) both; animation-timeline: view(); animation-range: entry 20% cover 60%; }
-@keyframes count-up { from { counter-set: stat 0; } to { counter-set: stat var(--target); } }
+/* Progressive enhancement (Chrome 137+) */
+@supports (animation-timeline: view()) {
+  .stat-num { font-variant-numeric: tabular-nums; counter-set: stat var(--target); }
+  .stat-num::after { content: counter(stat); animation: count-up 1.4s var(--ease-out) both; animation-timeline: view(); animation-range: entry 20% cover 60%; }
+  @keyframes count-up { from { counter-set: stat 0; } to { counter-set: stat var(--target); } }
+}
 ```
 
 ## animate.css (animate.style) — Tier 0 Pragmatic Default
