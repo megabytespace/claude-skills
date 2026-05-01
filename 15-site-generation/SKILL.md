@@ -1,11 +1,11 @@
 ---
 name: "site-generation"
-description: "End-to-end AI website generation pipeline. Single Claude Code prompt builds complete Vite+React+Tailwind sites from business data. Pre-research via APIs, media acquisition, brand extraction, visual inspection via GPT-4o, R2 upload, D1 status updates. Supports all business types: SaaS, portfolio, non-profit, restaurant, salon, medical, legal, retail, tech."
+description: "End-to-end AI website generation pipeline. Claude Opus 4.7 emits Bolt-style <boltArtifact> envelopes (multi-file, plan-first) that customize Vite+React+Tailwind templates from pre-researched business data. Pre-research via APIs, media acquisition, brand extraction, visual inspection via GPT-4o, R2 upload (per-file content-type by extension), D1 status updates. Supports all business types: SaaS, portfolio, non-profit, restaurant, salon, medical, legal, retail, tech."
 metadata:
-  version: "1.0.0"
-  updated: "2026-04-24"
+  version: "2.0.0"
+  updated: "2026-04-30"
   effort: "xhigh"
-  model: "opus"
+  model: "claude-opus-4-7"
   context: "fork"
 license: "Rutgers"
 compatibility:
@@ -19,11 +19,14 @@ submodules:
   - domain-features.md
   - template-system.md
   - local-seo.md
+  - bolt-artifact-protocol.md
+  - blog-import.mjs
+  - validate-assets.mjs
 ---
 
 # 15 -- Site Generation
 
-Submodules: research-pipeline.md (API-driven business research, scraping, enrichment), media-acquisition.md (image/video/logo sourcing from 12+ APIs), build-prompts.md (master prompt + enhancement phases), quality-gates.md (tiered visual inspection, SEO audit, accessibility), domain-features.md (category-specific features for 18+ business types), template-system.md (Vite+React+Tailwind+shadcn/ui starter, customization patterns), local-seo.md (citation building, GBP sync, review generation, trust badges, local conversion tracking).
+Submodules: research-pipeline.md (API-driven business research, scraping, enrichment), media-acquisition.md (image/video/logo sourcing across 17 engines incl. Flux 1.1 Pro Ultra, Ideogram 3.0, Recraft V3, GPT Image 1.5, Sora — Pexels-first/AI-fallback, pHash dedup), build-prompts.md (master prompt + enhancement phases), quality-gates.md (Lighthouse CI v0.15+, axe-core/playwright v4.11+ WCAG 2.2 AA, source-parity diff, 3-tier visual regression, console-error gate, Recommendations Loop), domain-features.md (category-specific features for 18+ business types), template-system.md (Vite+React+Tailwind+shadcn/ui starter, customization patterns), local-seo.md (citation building, GBP sync, review generation, trust badges, local conversion tracking), bolt-artifact-protocol.md (<boltArtifact> XML envelope spec — ordered file/shell actions, PLAN.md-first, runtime parser+executor, anti-patterns, ~$6/site at 80K output tokens), blog-import.mjs (RSS-first crawl + Squarespace JSON fallback → strip CMS residue → GPT-4o-mini typed-block restructure → pHash dedup → src/data/blog-posts.ts emission), validate-assets.mjs (post-build R2/dist gate — 13 mandatory files + every img/link/script/source ref resolves OR matches external host allowlist).
 
 ## Dual-Template Architecture (***TWO REPOS — NEVER CONFUSE***)
 
@@ -40,6 +43,8 @@ Submodules: research-pipeline.md (API-driven business research, scraping, enrich
 
 A perfect website CANNOT be created with a single LLM call. It requires a Principal SE-level prompt that orchestrates research→build→inspect→fix loops. The system front-loads ALL research and assets BEFORE Claude Code touches code, then gives it one comprehensive prompt with everything pre-digested. Claude Code starts from a pre-installed template and customizes it — never generates from scratch.
 
+**Generation protocol (***Bolt-style `<boltArtifact>` ENVELOPE — see `bolt-artifact-protocol.md`***):** The model emits ONE XML envelope containing an ordered sequence of `<boltAction type="file" filePath="…">` and `<boltAction type="shell">` actions. First action is ALWAYS `PLAN.md` (route tree, design-token diff, media count, file count, validators) — auditable post-build, not a chat artifact. Replaces the legacy single-inline-HTML output (Llama 3.1 70B → 16K-token monolith) which fundamentally couldn't produce the multi-page, media-rich, blog-bearing sites the platform promises. Runtime parser (`projectsites.dev/.../services/artifact_parser.ts`) validates first-action-is-PLAN.md + required-files set + npm…build shell action; failures re-prompt the model with the error list (max 2 retries). Executor (`artifact_executor.ts`) supports two modes: `r2-files` uploads each servable file to `sites/{slug}/{version}/{path}` with content-type by extension (skips source-only files like `src/`, `package.json`, `vite.config.*`, and shell actions); `container` runs `git clone template → npm install → vite build → upload dist/` inside Cloudflare Containers (gated behind `ContainerModeNotProvisionedError` until container provisioned). Choose `container` when the artifact emits source code (the default per the new generator prompt) and `r2-files` when emitting pre-built static HTML/CSS/JS.
+
 **Quality bar:** Stripe/Linear/Vercel-level polish. Every site must be so good the business owner prefers it over their original. We don't copy — we take any website and make it dramatically better. Information-dense sites get condensed into gorgeous, well-organized modern designs with MORE useful information in FEWER, better-designed pages.
 
 ## Pipeline Overview
@@ -54,13 +59,15 @@ Phase 0: Pre-Research + Media Acquisition (***RUNS IN ALL BUILD MODES***)
   → Output: _research.json, _scraped_content.json, _assets/ folder with all images
   → HARD GATE: <10 images in assets/ = build NOT complete
 
-Phase 1: Single Claude Code Prompt (Container OR manual session)
-  → Reads all _ prefixed context files (or performs Phase 0 inline if manual)
-  → Customizes pre-installed Vite+React+Tailwind+shadcn/ui template
+Phase 1: Claude Opus 4.7 Bolt-Artifact Emission (Worker OR Container)
+  → Reads all _ prefixed context files
+  → Emits ONE <boltArtifact> envelope with ordered <boltAction> file/shell tags
+  → First action ALWAYS PLAN.md (route tree, design tokens, media+file counts, validators)
+  → Customizes pre-installed Vite+React+Tailwind+shadcn/ui template via file actions
   → Builds 1:N-page site MATCHING source sitemap (every URL recreated, max 1000); never caps at 4–8 — content-thin source = condensed (≥4 pages floor for new builds), content-rich source = full mirror
   → Clean URL slugs (never copy CMS garbage like -1 suffixes)
-  → Runs npm run build → node inspect.js → fixes issues → rebuilds
-  → Uploads all files to R2 via bundled upload script
+  → Runtime parser validates first-action-PLAN.md + REQUIRED_FILES + npm…build shell action; failures re-prompt (max 2 retries)
+  → Executor branches: r2-files (Worker uploads pre-built static files to R2 with content-type per extension) OR container (clone template → npm install → vite build → upload dist/)
 
 Phase 2: Post-Build Verification (Worker)
   → Screenshot via microlink.io → GPT-4o vision scoring
@@ -71,7 +78,7 @@ Phase 2: Post-Build Verification (Worker)
 
 ## Single-Prompt Architecture
 
-The container receives ONE prompt that encompasses all build phases. The prompt references `~/.agentskills/15-site-generation/` for methodology. Context files written to the build directory before Claude Code runs:
+The container (or Worker, in r2-files mode) receives ONE prompt that encompasses all build phases. The prompt references `~/.agentskills/15-site-generation/` for methodology and instructs the model to emit a single `<boltArtifact>` envelope (see `bolt-artifact-protocol.md`). Context files written to the build directory before the model runs:
 
 `_research.json`→business profile+hours+phone+address+reviews+geo (Google Places+Workers AI) | `_brand.json`→colors+fonts+personality+logo URL+color_source (brand extraction) | `_citations.json`→APA 7th ed bibliography keyed by refId for every quantitative claim (rules/citations.md) | `_scraped_content.json`→all pages from existing website by URL (scraper) | `_assets.json`→image manifest with metadata (discovery pipeline) | `_image_profiles.json`→GPT-4o analysis per image: quality+placement+colors (profiling) | `_videos.json`→YouTube/Pexels embed URLs+metadata | `_places.json`→Google Places enrichment: photos+reviews+rating | `_form_data.json`→user-submitted form data from /create | `_domain_features.json`→category-specific feature requirements (template cache)
 
@@ -113,13 +120,15 @@ The container receives ONE prompt that encompasses all build phases. The prompt 
 
 **Analytics (***NON-NEGOTIABLE — skill 13***):** PostHog snippet (`persistence:'memory'`, cookie-free) + GA4/GTM container + local conversion tracking (phone_click, direction_click, form_submit, booking_click). See skill 13 conversion-optimization.md for event taxonomy. Every `tel:` link fires phone_click. Every Maps link fires direction_click. Every form submit fires form_submit.
 
-## Container Architecture
+## Execution Architecture (***TWO MODES — pick at call time***)
 
-Container is a stateless Claude Code executor on CF Workers Containers. Pre-bakes: `@anthropic-ai/claude-code`, `~/.agentskills` (this repo), `~/template-local` (megabytespace/template.projectsites.dev), `~/template-saas` (megabytespace/saas-starter), `~/upload-to-r2.mjs` (R2 upload script), `~/inspect.js` (visual QA), `~/validate-urls.js` (URL preservation validator), `~/validate-citations.js` (citation gate via citation-js npm), `~/format-citations.js` (BibTeX/RIS/CSL→APA 7th converter). Runs as non-root `cuser` with `--dangerously-skip-permissions`.
+**Mode 1: r2-files (Worker-native, ships today).** Worker receives Bolt artifact, parses via `artifact_parser.ts`, executor `executeR2Files(artifact, { bucket, slug, version })` uploads each servable file action to `sites/{slug}/{version}/{path}` with content-type by extension (~20 extensions: html, css, js, json, svg, png, jpg, webp, woff2, webmanifest, …). Source-only paths skipped silently (`src/`, `scripts/`, `tests/`, `node_modules/`, `.github/`, `package.json`, `tsconfig.json`, `vite.config.*`, `tailwind.config.*`, `PLAN.md`). `public/` prefix stripped on upload (favicons land at served root). Shell actions skipped (Workers has no shell) and surfaced via `skippedShells[]` for the orchestrator to warn. Batch size 10 to stay under Workers I/O ceilings. Manifest written to `sites/{slug}/_manifest.json`. Requires the prompt to instruct Claude to emit pre-built static HTML/CSS/JS (no Vite source) — otherwise the served bundle won't render.
 
-The container entrypoint: HTTP server on 8080. POST /build → select template from `_form_data.json.category` (local→`~/template-local`, saas→`~/template-saas`) → copy to `~/build/` → write context files → write CLAUDE.md → run single `claude -p` → on completion, run `npm run build` → run `node ~/validate-urls.js` (fail if original URLs unaccounted) → run `node ~/validate-citations.js dist/` (fail if any unsourced numeric claim) → run `node ~/inspect.js dist/index.html` → run `node ~/upload-to-r2.mjs` → return status. GET /status → poll job. GET /result → return metadata.
+**Mode 2: container (Cloudflare Container, future).** Stateless Claude Code executor on CF Workers Containers. Pre-bakes: `@anthropic-ai/claude-code`, `~/.agentskills` (this repo), `~/template-local` (megabytespace/template.projectsites.dev), `~/template-saas` (megabytespace/saas-starter), `~/upload-to-r2.mjs` (R2 upload script), `~/inspect.js` (visual QA), `~/validate-urls.js` (URL preservation validator), `~/validate-citations.js` (citation gate via citation-js npm), `~/format-citations.js` (BibTeX/RIS/CSL→APA 7th converter), Node 20+, Bun 1.x optional, ImageMagick (favicon fallback), pdftoppm (PDF preview), git, curl, jq. Runs as non-root `cuser` with `--dangerously-skip-permissions`. Entrypoint: HTTP server on 8080. POST /build → select template from `_form_data.json.category` (local→`~/template-local`, saas→`~/template-saas`) → copy to `~/build/` → write context files → write CLAUDE.md → run single `claude -p` → parse `<boltArtifact>` → write each file action → `npm install && node scripts/generate-favicons.mjs && npm run build && node scripts/validate-assets.mjs dist` → `node ~/validate-urls.js` (fail if original URLs unaccounted) → `node ~/validate-citations.js dist/` (fail if any unsourced numeric claim) → `node ~/inspect.js dist/index.html` → `node ~/upload-to-r2.mjs dist/ → sites/{slug}/{version}/` → return status. GET /status → poll job. GET /result → return metadata. Currently gated behind `ContainerModeNotProvisionedError` in `artifact_executor.ts` until container provisioned.
 
-**R2 upload script** runs inside the container after build. Uses CF REST API (`api.cloudflare.com/client/v4/accounts/{acctId}/r2/buckets/{bucket}/objects/{key}`). Detects Vite projects via dist/ prefix. dist/ files → `sites/{slug}/{version}/`. Source → `sites/{slug}/{version}/_src/`. Writes `_manifest.json`. Credentials passed as env vars.
+**R2 upload script** (container mode) uses CF REST API (`api.cloudflare.com/client/v4/accounts/{acctId}/r2/buckets/{bucket}/objects/{key}`). Detects Vite projects via dist/ prefix. dist/ files → `sites/{slug}/{version}/`. Source → `sites/{slug}/{version}/_src/`. Writes `_manifest.json`. Credentials passed as env vars.
+
+**Workflow integration** (`apps/project-sites/src/workflows/site-generation.ts`): step `generate-website` returns model output → `looksLikeArtifact(output)` branches the `upload-to-r2` step. Artifact path: `parseArtifact()` → on parse failure throw with detail (workflow retries via `step.do(RETRY_3)`) → `executeR2Files()` → overlay legal pages + research.json → write richer manifest. Legacy single-HTML path preserved as fallback. Structural HTML validators + banned-word grep skipped when `isArtifact === true` (validation runs inside the artifact parser instead).
 
 ## Env Vars Available in Container
 
@@ -182,7 +191,7 @@ After site generation, the pipeline CAN auto-send a welcome email to the busines
 
 | Component | Current | At Scale | Notes |
 |-----------|---------|----------|-------|
-| **Code generation** | $0.50-2.00 (Claude Code) | $0.02-0.05 (Workers AI) | Llama 3.3 70B for template fill, Claude only for complex/custom |
+| **Code generation** | $5-7 (Claude Opus 4.7, ~80K out @ $75/MTok) | $0.02-0.05 (Workers AI) | Opus 4.7 emits Bolt artifact for complex/custom; Llama 3.3 70B for template fill at scale; Llama 3.1 70B baseline was $0.30/site but capped at 16K-token monolith (rejected — couldn't produce multi-page sites) |
 | **Research APIs** | ~$0.01 (Google Places) | ~$0.005 | Batch + cache nearby businesses, reuse geo data |
 | **Web scraping** | ~$0 (fetch) | ~$0 | CF Workers fetch, zero cost |
 | **Image profiling** | ~$0.02 (Workers AI bulk + GPT-4o hero) | ~$0.01 (Workers AI) | Llama Vision for all, GPT-4o hero pick only |
@@ -196,7 +205,7 @@ After site generation, the pipeline CAN auto-send a welcome email to the busines
 | **D1 database** | ~$0 | ~$0.001/site/mo | Row storage minimal |
 | **Container compute** | ~$0.10 (CF Container) | ~$0.02 | Pre-warm pools, shorter runs with template engine |
 | **DNS/routing** | ~$0 | ~$0 | Wildcard *.projectsites.dev |
-| **TOTAL** | **$1.00-3.50** | **$0.25-0.40** | 80-90% cost reduction at scale |
+| **TOTAL** | **$5.50-8.00** (Tier 3 Opus) / $1.00-3.50 (Tier 1-2) | **$0.25-0.40** | 80-95% cost reduction at scale via tiered routing |
 
 ### Scale Optimization Strategies
 
@@ -206,8 +215,8 @@ Most local businesses (restaurant, salon, medical, legal) are structurally ident
 **Tier 2: Workers AI First (15% of sites, $0.20-0.40/site)**
 Sites needing layout customization beyond templates. Workers AI generates component JSX (not full site). Llama Vision replaces GPT-4o for image profiling and QA. Edge inference = zero network latency, included in Workers Paid plan.
 
-**Tier 3: Claude Code (5% of sites, $1.50-4.00/site)**
-Complex multi-page sites, custom designs, SaaS, portfolios with unique layouts. Full container build. Worth the cost — these are premium-priced sites.
+**Tier 3: Claude Opus 4.7 (5% of sites, $5-7/site)**
+Complex multi-page sites, custom designs, SaaS, portfolios with unique layouts. Full Bolt-artifact emission (~80K output tokens × $75/MTok = $6 typical) into container build. Worth the cost — these are premium-priced sites and the multi-file artifact protocol is the only path to true Stripe/Linear/Vercel-level output. Pricing pays off when conversion lift > 5% of LTV (Anthropic, 2026).
 
 ### Media Caching (***MASSIVE SAVINGS***)
 
