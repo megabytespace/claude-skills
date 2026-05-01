@@ -13,11 +13,13 @@ submodules:
   - social-automation.md
   - seo-and-keywords.md
   - documentation-and-codebase-hygiene.md
+  - per-route-metadata.md
+  - grammar-audit.md
 ---
 
 # 09 — Brand and Content System
 
-Submodules: email-templates (branded HTML via Resend), social-automation (Postiz on Coolify), seo-and-keywords (per-page targeting, Yoast, schema), documentation-and-codebase-hygiene (README/CLAUDE.md/JSDoc sync).
+Submodules: email-templates (branded HTML via Resend), social-automation (Postiz on Coolify), seo-and-keywords (per-page targeting, Yoast, schema), documentation-and-codebase-hygiene (README/CLAUDE.md/JSDoc sync), per-route-metadata (RouteMetadata interface, hydrated head template, per-route Satori OG cards, generous internal linking ≥5/page, publication-item schema), grammar-audit (final GPT-4o-mini corrective pass — typos/agreement/Oxford comma without rewriting voice).
 
 ## Brian's Brand Voice
 Slogans: "Open-Source Wizardry. 100% Wizardry. 0% Robes." / "Often imitated, never duplicated." Newsletter: "Lab Insights Journal". Handle: @HeyMegabyte. Email: hey@megabyte.space / brian@megabyte.space. Tone: professional but irreverent, "Hey" not "Hi", first-person Megabyte Labs. Always "cross-platform"+"open-source". Install Doctor: "single command"/"one-liner". Hero: "[Topic] **Innovation**". Footer CTA: "Let's Talk". Rates: $140/hr ($70 nonprofit), $100/mo WordPress. Social: all platforms, "Megabyte Minis" YouTube, Dev.to, Patreon.
@@ -82,9 +84,9 @@ Named testimonials > logos > stats > awards > media > ratings > GitHub stars. Ev
 ## IA: Hero, social proof, features (3-4), how it works (3 steps), testimonials, pricing, FAQ (4-6), final CTA, footer. Content density: hero 20-30, features 15-25, testimonials 20-40, FAQ 30-60, body 50-100.
 
 ## SEO
-Per-page: title 50-60 (keyword+brand), meta 120-156, one H1, canonical, OG+Twitter, JSON-LD (Organization, WebSite+SearchAction, WebPage, FAQPage, Product, BreadcrumbList, SoftwareApplication). robots.txt, sitemap.xml, internal linking, alt text.
+Per-page: title 50-60 (keyword+brand), meta 120-156, one H1, canonical, OG+Twitter, JSON-LD (Organization, WebSite+SearchAction, WebPage, FAQPage, Product, BreadcrumbList, SoftwareApplication). robots.txt, sitemap.xml, internal linking, alt text. **See per-route-metadata.md for full RouteMetadata interface + per-route Satori OG generation.**
 
-Keywords: primary in title/H1/first paragraph/meta. Longtails in H2s (1-2/page). Density 1-2%. Lengths: homepage 500+, feature 600+, pricing 400+, blog 1000+, about 300+. Internal links 2-3/page.
+Keywords: primary in title/H1/first paragraph/meta. Longtails in H2s (1-2/page). Density 1-2%. Lengths: homepage 500+, feature 600+, pricing 400+, blog 1000+, about 300+. **Internal links ≥5 per page** (body-copy contextual, descriptive anchor text, varied phrasing — see per-route-metadata.md "Generous Internal Linking"). **Publication/portfolio/press listings:** every item card MUST include (a) ~40-word paraphrased summary (NEVER quoted abstract — copyright + duplicate-content), (b) deep-link to original (`target="_blank" rel="noopener"`), (c) hyperlinked source name → its homepage/DOI. Universities/journals/conferences mentioned in body MUST link to their official site. See per-route-metadata.md "Publication Item Schema".
 
 ## Programmatic SEO Page Types
 1. **Integration pages:** "[Tool A] + [Tool B] integration" — Zapier model (1.3M keywords). Template: shared data points, step-by-step setup, real use cases.

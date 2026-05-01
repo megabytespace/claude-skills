@@ -16,11 +16,13 @@ submodules:
   - image-optimization.md
   - technical-diagramming.md
   - image-profiling.md
+  - lightbox-classifier.md
+  - social-brand-hex.md
 ---
 
 # 12 -- Media Orchestration
 
-Submodules: media-prompts.md (prompt templates, Ideogram v3 API), compression-pipeline.md (Python code, format tables, CF Image Transforms, CLS, broken image detection), og-image-generation.md (Satori edge-rendered OG images, KV/R2 cache, meta-tag helper), image-optimization.md (Sharp processing, responsive srcset, WebP/AVIF, blur placeholders, R2 pipeline), image-profiling.md (GPT-4o vision batch profiling — quality+placement+colors per image, pre-digest for builders).
+Submodules: media-prompts.md (prompt templates, Ideogram v3 API), compression-pipeline.md (Python code, format tables, CF Image Transforms, CLS, broken image detection), og-image-generation.md (Satori edge-rendered OG images, KV/R2 cache, meta-tag helper), image-optimization.md (Sharp processing, responsive srcset, WebP/AVIF, blur placeholders, R2 pipeline), image-profiling.md (GPT-4o vision batch profiling — quality+placement+colors per image, pre-digest for builders), lightbox-classifier.md (per-image eligibility — kind!=logo + ≥1024×768 + score≥7, logo grids → hover-grayscale-to-color), social-brand-hex.md (canonical brand-color map per social platform, hover/focus/active states, per-platform CSS class generation).
 
 ## Strategy by Section
 Hero: GPT Image 1.5/Sora. Features: GPT Image 1.5/SVG. How It Works: GPT Image 1.5. Testimonials: stock. About: stock/real. Blog: GPT Image 1.5. Social: Satori OG 1200x630. Icons: Ideogram v3+processing.
@@ -46,6 +48,12 @@ GPT Image 1.5 preferred (best quality). GPT Image 1 for speed. GPT Image 1-mini 
 **Assets:** favicon.ico (16+32+48), 16/32/180/192/512 PNGs, logo-header, logo-mark, og-image 1200x630.
 
 **Auto-favicon pipeline (EVERY NEW PROJECT):** Generate winning logo→`magick logo.png -fuzz 15% -trim +repage` then: `-resize 512x512 android-chrome-512x512.png`|`-resize 192x192 android-chrome-192x192.png`|`-resize 180x180 apple-touch-icon.png`|`-resize 32x32 favicon-32x32.png`|`-resize 16x16 favicon-16x16.png`|multi-size `.ico` with 16+32+48. Ensure `site.webmanifest` references 192+512. Head tags: `<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>`|`<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>`|`<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>`|`<link rel="manifest" href="/site.webmanifest"/>`.
+
+**Logo background transparency (NON-NEGOTIABLE):** every logo file shipped MUST be transparent-background PNG. Run `magick logo.png -fuzz 8% -transparent white -trim +repage logo-clean.png` after acquisition (whether scraped, generated, or uploaded). White-bg logos on dark hero = a white rectangle floating over the page = looks broken. Verify via Sharp: `(await sharp(buf).raw().toBuffer()).readUInt8(3) < 255` for ≥1% of corner pixels. Build gate: corner-pixel sample shows alpha<255 OR fail.
+
+**Institutional logo lookup (NON-NEGOTIABLE — universities, journals, sponsors, partners):** when research data lists institutional names (Boston University, Harvard, Nature Journal, Forbes, Microsoft Partner), look up each via Logo.dev / Brandfetch / Wikipedia og:image / official site favicon scrape — NEVER text-only badges. Cache to `r2://logos/{slug-of-institution}.svg|.png`. Render in dedicated `.logo-grid` (skill 12 lightbox-classifier.md hover-grayscale-to-color). Aria-label includes full institutional name. Each links to official site (`target="_blank" rel="noopener"`). Build gate: every institution mentioned in `_research.json.affiliations[]|publications[].source|sponsors[]|partners[]` has a resolved logo file or fail with diagnostic listing missing names.
+
+**PWA manifest screenshots[] (***NON-NEGOTIABLE***):** every site ships a `site.webmanifest` with a `screenshots[]` array — desktop wide 1920×1080 + mobile narrow 390×844 + optional cover 1280×720. Captured via Playwright on `http://localhost:4173` (built site) AFTER prerender + before R2 upload. NEVER stock mockup PNGs — must be real screenshots of THIS site. Each ≤200KB JPEG q=85. See skill 06 pwa-kit.md for full manifest template + Playwright capture command.
 
 **OpenAI key:** Load from `~/.claude/.env` via `source ~/.claude/.env`. Manage at https://platform.openai.com/api-keys. Replicate at https://replicate.com/account/api-tokens. Ideogram at https://developer.ideogram.ai/keys.
 

@@ -185,6 +185,16 @@ Every projectsites.dev build MUST pass these automated gates before R2 upload. W
 | Visual regression | Percy AI Visual Review / pixelmatch | <0.1% pixel diff vs baseline | warn → review |
 | Image budget | `validate-image-budgets.mjs` | single ≤200KB, total ≤500KB | exit 1 |
 | Cross-browser smoke | Playwright Chrome+Safari | homepage loads, no console errors at 6 breakpoints | exit 1 |
+| Pseudo-element positioning | `validate-pseudo-position.mjs` (grep CSS for `::before\|::after` blocks containing `top:\|left:\|right:\|bottom:` → assert parent selector has `position:` declared) | every absolutely-positioned ::before/::after has parent `position: relative\|absolute\|fixed\|sticky` | exit 1 |
+| Lightbox-on-logos forbidden | `validate-lightbox-targets.mjs` (grep dist/ source for `data-gallery="logos\|trusted\|sponsors\|partners\|institutions\|press\|publications\|awards"`) | zero matches — institutional logo grids must use hover-grayscale-to-color (skill 12 lightbox-classifier.md) NOT lightbox | exit 1 |
+| Per-route metadata | `validate-route-metadata.mjs` (every `<Route path>` in App.tsx has matching entry in src/data/page-meta.ts OR data-derived meta from blogPosts[]) | 100% route coverage, no fallback `index.html` `<title>` showing on production routes | exit 1 |
+| White-flash transition | Playwright records 60fps video of route transition on dark-themed sites → asserts NO frame contains average pixel-luminance >0.5 | dark sites pass, light sites N/A | exit 1 |
+| PWA full kit | `validate-pwa.mjs` (skill 06 pwa-kit.md) | site.webmanifest valid + ≥6 icon entries + ≥2 real screenshots + sw.js registered + offline.html ≤30KB with NAP + Lighthouse PWA ≥0.95 | exit 1 |
+| Publication crawl depth | `validate-publications.mjs` (skill 15 SKILL.md "Deep crawl per page") | `_publications.json` length ≥ source index item count, every entry has paraphrased summary + outbound URL + source logo + date | exit 1 |
+| Logo transparency | `validate-logo-alpha.mjs` (Sharp corner-pixel sample) | every shipped logo PNG has alpha<255 on ≥1% of corner pixels (no white-rectangle floating logos) | exit 1 |
+| Institutional logos resolved | `validate-institutional-logos.mjs` | every name in `_research.json.affiliations[]\|publications[].source\|sponsors[]\|partners[]` has a resolved logo file in dist/ | exit 1 |
+| Grammar audit | `validate-grammar.mjs` (skill 09 grammar-audit.md GPT-4o-mini final pass) | zero grammar/spelling/typography errors flagged on every rendered page | exit 1 |
+| Brand-hex social hover | `validate-social-hex.mjs` (skill 12 social-brand-hex.md) | every social-link icon `<a>` has hover/focus/active CSS using canonical platform hex | exit 1 |
 
 ## Lighthouse CI (***NON-NEGOTIABLE***)
 
