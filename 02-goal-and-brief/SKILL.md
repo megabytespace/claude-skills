@@ -89,6 +89,34 @@ GEO layer: quotable answer blocks 40-60 words, FAQPage+HowTo schema → AI citat
 
 Before major decisions: Aligned with thesis? Target users? Business model? Success criteria? Not in non-goals? Within constraints? Any fail → adjust implementation or escalate.
 
+## SaaS+Portfolio Pairing (***ALWAYS — universal rule***)
+
+Every SaaS one-line prompt auto-spawns a SIBLING personal portfolio/about site for the founder/creator on a separate domain. Same session, same quality bar, parallel build via skill 15. Brief MUST capture both: (1) SaaS product brief and (2) Founder Portfolio brief in section `## Founder` of `PROJECT_BRIEF.md`.
+
+**Founder identity inference (in priority order):**
+1. Explicit prompt mention (`built by X`, `for founder Y`)
+2. `~/emdash-projects/PORTFOLIO.md` (Brian's master profile)
+3. `git config user.name` + `git config user.email`
+4. Existing portfolio site at `${name}.megabyte.space` or `${firstname}.dev`
+5. Default: Brian Zalewski / brian@megabyte.space / Megabyte Labs
+
+**Portfolio brief auto-fields (Section `## Founder` in PROJECT_BRIEF.md):**
+- `founder.name` | `founder.role` | `founder.bio_short` (≤140 chars) | `founder.bio_long` (≤500 words)
+- `founder.email` | `founder.location` | `founder.timezone`
+- `founder.links[]`: github, linkedin, x, mastodon, bluesky, youtube, other
+- `founder.portfolio_domain`: defaults `${firstname}.dev` → fallback `${firstname}-${lastname}.dev` → fallback `${firstname}.megabyte.space`
+- `founder.flagship_works[]`: { name, url, summary, year } — SaaS being built auto-prepended as flagship #1
+- `founder.skills[]` | `founder.testimonials[]` (if available) | `founder.headshot_url` (Gravatar fallback)
+
+**Pairing rules baked into PROJECT_BRIEF.md template:**
+- SaaS site `/about` page MUST link to founder portfolio via "Built by {founder.name}" CTA + headshot
+- SaaS site footer MUST credit "Built by {founder.name} · {portfolio_url}"
+- Portfolio site MUST link back to SaaS as "Currently building" / flagship project
+- Both sites share `founder.headshot_url` + `founder.bio_short` (consistency)
+- D1 sites table: parent `site_id` (SaaS) + sibling `child_site_id` (portfolio), linked via `pair_group_id` UUID
+
+Skip ONLY when product type is itself a portfolio (already founder-owned site) or pure internal tool (no external founder narrative).
+
 ## Storage & Format
 
 `PROJECT_BRIEF.md` in project root. Markdown. Never delete — archive old sections if direction changes. Auto-update "Current Truth" every session. Import with `@PROJECT_BRIEF.md` in CLAUDE.md for always-loaded context.
