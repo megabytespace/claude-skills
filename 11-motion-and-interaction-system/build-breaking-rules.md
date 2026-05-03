@@ -1,0 +1,43 @@
+---
+name: "11 build-breaking motion rules"
+description: "Universal motion/interaction gates: stat counter roll-in, click ripple (no cursor follower), 4-state interactive (active/hover/focus/focus-visible) + universal underline-hover (single underline only), no-layout-shift image hover, no-white-flash card hover, View Transitions cross-fade, animate.css entrance, anti-FOUC fadeIn. Migrated verbatim from rules/always.md 2026-05-03."
+metadata:
+  version: "1.0.0"
+  updated: "2026-05-03"
+  effort: "high"
+  context: "fork"
+license: "Rutgers"
+compatibility:
+  claude-code: ">=2.0.0"
+  agentskills: ">=1.0.0"
+---
+
+# 11 — Build-Breaking Motion + Interaction Rules
+
+Migrated from `~/.claude/rules/always.md` 2026-05-03.
+
+## Every stat block
+`150+ Publications`, `30+ Years`, `$2.4M raised`: IntersectionObserver+rAF roll-in counter ≤1.6s ease-out, respects prefers-reduced-motion, `+`/`%`/`x` suffix renders OUTSIDE animated digit node.
+
+## Every site (interactive 2 — 4 distinct states + universal underline-hover)
+All 4 distinct+animated states required per button/link/input/tile — `:active` `:hover` `:focus` `:focus-visible`. Build gate: visual-qa subagent verifies via DOM snapshot at 6 breakpoints. Tile-as-link: contact/info tiles with single primary action (phone|address|email|social card) — entire tile is click target with hover lift, not just inner chip.
+
+Universal underline-hover for body+heading `<a>` (***EXACTLY ONE UNDERLINE — NEVER TWO — UNIVERSAL — BUILD-BREAKING***): block MUST live at the END of the global stylesheet, OUTSIDE `@layer components`. Tailwind v4 layer order = base < components < utilities, so `text-decoration: none` from inside components LOSES to Tailwind's `underline` utility in @layer utilities — anchor renders BOTH a static line AND the animated sweep (double-underline = fail). Auto-apply selectors set `text-decoration: none !important` + `position: relative` + transition only — NEVER set `color` (otherwise hardcoded dark `color: var(--brand-accent-dark)` overrides Tailwind parent classes like `text-maroon-100` on a light hero text and renders the link as faint dark-on-dark, invisible to users). The `::after` uses `background: currentColor` (NEVER a hardcoded brand var) so the sweep matches the link's text color in any context — light hero text → light sweep; dark body text → dark sweep. Pattern: `.underline-hover, .blog-paragraph a, main p a:not([class*="btn-"]):not([data-no-underline]):not(:has(img)):not(:has(svg)) { position:relative; text-decoration:none !important; transition:color .2s ease,opacity .2s ease } .underline-hover::after, ...::after { content:""; position:absolute; z-index:1; left:51%; right:51%; bottom:-2px; background:currentColor; height:1px; opacity:.6; transition:left .3s ease-out,right .3s ease-out,opacity .2s ease; pointer-events:none } .underline-hover:hover::after, .underline-hover:focus-visible::after { left:0; right:0; opacity:1 }`. Tailwind `underline` class on the anchor remains harmless (overridden); existing `decoration-*` classes become no-ops. Reference incident (njsk.org contact hero 2026-05-02): rule lived inside `@layer components`, set `color: var(--color-maroon-800)`, used hardcoded `background: var(--color-maroon-700)` — produced double-underline AND faint dark-on-dark hero link.
+
+## Every desktop site (***CLICK RIPPLE ONLY — UNIVERSAL — megabyte.space reference***)
+Desktop-only (`(min-width:768px) and (pointer:fine)` AND NOT `prefers-reduced-motion: reduce`). NEVER hide native cursor — keep system cursor visible at all times. NO cursor-ring/follower/dot/halo (Brian removed 2026-05-02 — felt clingy, hurt accessibility, fought OS cursor themes). `mousedown` spawns `<span class="cursor-ripple">` at click coords: 8px→60px expand, `border:1.5px solid var(--brand-accent)`, `position:fixed`, `pointer-events:none`, `z-index:9999`, `mix-blend-mode:difference`, opacity 0.6→0, 0.6s ease-out, removed on `animationend`. Touch/`pointer:coarse` AND reduced-motion BOTH skip the ENTIRE system (no init). Implementation: template ships `src/lib/cursor.ts` + global CSS (ripple-only, ring code deleted) — never hand-rolled per site. Build gate `validate-cursor.mjs` (skill 15): assert NO `.cursor-ring` element ever appears in DOM, AND `body{cursor:none}` rule absent, AND ripple still spawns on mousedown.
+
+## Every image hover (***NO LAYOUT-AFFECTING PROPERTIES — UNIVERSAL — BUILD-BREAKING***)
+`<img>`/`<picture>`/`<svg>` `:hover`/`:focus` MUST NOT mutate `border|outline|padding|margin|width|height|border-width|inset|top|left|right|bottom`. Allowed: `transform` (scale/translate), `filter` (brightness/saturate/blur), `box-shadow` (incl. `inset 0 0 0 2px var(--brand-accent)` for "border on hover" without reflow), `opacity`. Default state must reserve final box (e.g. always-on `border:2px solid transparent` if hover wants visible border). Build gate: `validate-image-hover.mjs` triggers `:hover` on every image, samples bounding-rect before+after — any dimension shift >0px=fail; CSS grep rejects `img:hover{border|outline|padding|margin|width|height: ...}` rules. Reference incident: express-heyo-ellicott-city FedEx ShipCenter image flickered a white line on hover (2026-05-02) because `:hover` added a 1px border that pushed neighbors.
+
+## Every card hover (***NO WHITE-FLASH ON FIRST HOVER — UNIVERSAL — BUILD-BREAKING — extends "Every image hover"***)
+Card components (project tiles, blog cards, team cards, service cards, pricing cards) MUST NOT flash white/transparent on first hover before the hover-state CSS kicks in. Root cause: setting hover transitions on `background-color` or `box-shadow` without specifying the FROM-state explicitly — browser interpolates from `initial` (transparent/none) to target, producing a white flash. Required pattern: explicitly set the rest-state value on the base selector (`background-color: var(--card-bg); box-shadow: 0 1px 2px rgba(0,0,0,0.05)` NOT just relying on default), THEN transition to hover-state value (`:hover { background-color: var(--card-bg-hover); box-shadow: 0 8px 24px rgba(0,0,0,0.12); transform: translateY(-3px) }`). Use `will-change: transform, box-shadow` only when hover frequency justifies (otherwise wastes layers). Compositor-only properties: prefer `transform` (translateY) over `top/margin` for lift; prefer `opacity` change on a pseudo-element overlay over `background-color` change on the element. Validator (`validate-card-hover-no-flicker.mjs`): Playwright records 30fps video of cursor entering card; analyzes frame-by-frame luminance — any single frame >20% brighter than rest-state followed by darker frames = white-flicker fail. Reference incident: nyfoldingbox.com rebuild (2026-05-02) project cards flashed white on first hover before settling into hover state — drove this rule.
+
+## Every page transition
+View Transitions API cross-fade 220ms ease-out, `html{background-color:var(--bg-primary)}` (or current page bg) — NEVER allow a white frame between routes.
+
+## Every entrance animation
+animate.css bundled globally (NOT CDN, no FOUT), prefer its classes (animate__fadeInUp/animate__zoomIn/animate__slideInLeft etc.) for entrance/exit. Custom @keyframes only when animate.css insufficient (asymmetric reveals, scroll-driven, View Transitions).
+
+## Every site (anti-FOUC + universal in-viewport fadeIn — ***NO TEXT JUMPING ON LOAD***)
+Every module (text block, title, image card, video, multimedia, section) MUST fadeIn ONCE when entering viewport (IntersectionObserver + animate.css `animate__fadeInUp animate__faster`, single trigger). Anti-FOUC: text MUST start at opacity:0 (`@starting-style` OR `.reveal-init { opacity: 0; transform: translateY(20px) }`) until JS attaches the observer — NEVER allow text to flash visible then jump to animated state. Pattern: `<html>` gets `js-reveal-active` class set BEFORE first paint via inline `<script>`, CSS rule `html.js-reveal-active .reveal:not(.is-visible) { opacity: 0; transform: translateY(20px) }`, JS toggles `.is-visible` on `entry.isIntersecting`. Reduced-motion: skip animation, render visible immediately. Validator: post-deploy E2E asserts no `font-size:0`/`opacity:0` text remains visible after 2s. The lone-mountain-global-3 text-jumping incident (2026-05-01) drove this rule.
