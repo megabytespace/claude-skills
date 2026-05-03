@@ -18,7 +18,7 @@
 <br/>
 
 <div align="center">
-  <code>15 categories</code> · <code>94 reference docs</code> · <code>18 agents</code> · <code>12 templates</code><br/>
+  <code>15 categories</code> · <code>113 reference docs</code> · <code>19 agents</code> · <code>12 templates</code><br/>
   <a href="https://claude.megabyte.space"><strong>🌐 Showcase Website</strong></a>
 </div>
 
@@ -188,6 +188,7 @@ Auto-generated on every push to master. Each format uses native frontmatter for 
 | 12 | **Media Orchestration** | 5 | Image/video generation, AI prompts, compression, OG previews, diagramming |
 | 13 | **Growth & Observability** | 7 | Stripe billing, analytics, Sentry alerts, email, experiments, CRO |
 | 14 | **Idea Engine** | — | Autonomous research, evidence-backed improvement proposals |
+| 15 | **Site Generation** | 12 | Full-corpus rebuild, slot-first DALL-E media, NotebookLM podcast/infographic/video, citations |
 
 ## Agents
 
@@ -230,6 +231,7 @@ Auto-generated on every push to master. Each format uses native frontmatter for 
 | **content-writer** | Haiku | low | Marketing copy, microcopy, alt text, SEO content |
 | **cost-estimator** | Haiku | low | Cloudflare Workers cost forecasting and free-tier warnings |
 | **seo-auditor** | Haiku | low | Title, meta, H1, JSON-LD, OG tags, sitemap validation |
+| **notebooklm-orchestrator** | Sonnet | high | Podcast (ElevenLabs) + infographic + explainer video pipeline per site |
 
 ## Hard Gates
 
@@ -310,7 +312,7 @@ Every deploy must clear all gates. No exceptions. No overrides.
 
 ## Task Routing
 
-The router loads the smallest useful subset per task — never the full 94 docs. See [`_router.md`](_router.md) for the complete routing table.
+The router loads the smallest useful subset per task — never the full 113 docs. See [`_router.md`](_router.md) for the complete routing table.
 
 | When you say... | Skills loaded |
 |-----------------|---------------|
@@ -416,7 +418,7 @@ ghost.megabyte.space
 
 Seriously — [open an issue](https://github.com/heymegabyte/claude-skills/issues/new?title=Improvement%20suggestion&body=I%20think%20this%20could%20be%20better%20if...) or submit a PR. Some things we're thinking about:
 
-- **More skill categories?** Is 14 the right number or are we missing something?
+- **More skill categories?** Is 15 the right number or are we missing something?
 - **Better agent routing?** Should model assignments shift as Claude evolves?
 - **Templates you wish existed?** What boilerplate do you write over and over?
 - **Skills for other stacks?** This is CF Workers + Angular today. What else?
