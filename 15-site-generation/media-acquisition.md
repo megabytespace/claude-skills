@@ -8,6 +8,52 @@ updated: "2026-04-24"
 
 Collect 10x more assets than needed, curate down via AI visual inspection. Asset count scales with page count: every page needs **6+ images on home, 4+ images on every sub-page, plus 1 logo + 5–10 AI originals + 3–5 videos**. A 4-page rebuild ⇒ 30–50 images; a 50-page rebuild ⇒ 200+ images; a 500-page rebuild ⇒ 2000+ images. Page count comes from the source sitemap (1:N mapping, max 1000) — NEVER cap media at 4-page-site numbers when source has more. Site must feel media-rich and immersive from the first scroll. Every site MUST have a logo and favicon set. Users should feel like a professional agency spent weeks curating this content.
 
+## Media Slot Manifest (***PHASE 0 — BEFORE ANY GENERATION — UNIVERSAL — BUILD-BREAKING***)
+
+Before any agent fans out, enumerate EVERY image slot on EVERY route into `_media_slots.json`. Treat slots as first-class build artifacts — no blind "fetch some images and pick later" pipeline. Each slot has an explicit identity, a per-slot DALL-E prompt drafted at this stage, an ordered source-resolution chain, and a final-fill commitment. A site whose `_media_slots.json` shows all slots filled = images guaranteed; a site without this manifest = ships missing images.
+
+**Slot record schema (JSON):**
+```json
+{
+  "slot_id": "home.hero.bg",
+  "route": "/",
+  "section": "hero",
+  "role": "background",
+  "aspect": "16:9",
+  "min_dims": [1920, 1080],
+  "topic_keywords": ["soup kitchen volunteers serving", "warm community gathering"],
+  "topic_intent": "people-actively-serving (NOT generic charity stock, NOT mixed adults if women+children focus)",
+  "brand_palette": ["#7C2D12", "#FED7AA"],
+  "preferred_motion": "video",
+  "source_chain": ["original-source-hero", "pexels-video", "coverr", "dalle-photoreal", "flux-pro", "brand-gradient"],
+  "dalle_prompt": "Photorealistic documentary-style overhead shot of volunteers serving soup at a community kitchen, warm window light, 85mm lens, brand palette burgundy #7C2D12 + cream #FED7AA, shallow depth of field, no text, no watermarks, no logos, hyperdetailed, 16:9 cinematic",
+  "negative_prompt": "no text, no watermarks, no logos, no extra fingers, no AI artifacts, no stock-photo cliches",
+  "relevance_floor": 8,
+  "filled_by": null,
+  "filled_url": null,
+  "filled_score": null,
+  "regen_attempts": 0
+}
+```
+
+**Manifest generation (***runs ONCE per build, before any agent fans out***):** Phase 0 step 1 = parse sitemap → for each route, classify section archetype (hero/services/team/blog-card/gallery/cta/about/testimonial/footer), instantiate slot records from `_slot_templates.json`, populate `topic_keywords` + `topic_intent` + `dalle_prompt` from page-context LLM call (single batched call across all slots — `gpt-4o` ~$0.05 per site). Manifest is the SINGLE source of truth — every downstream agent reads `_media_slots.json` and writes back to `filled_url` + `filled_score`.
+
+**Per-slot DALL-E prompt mandatory fields:** (1) page topic+intent verbatim from `topic_intent`, (2) brand palette tokens from `_brand.json.colors`, (3) composition + aspect ratio matching `aspect`, (4) subject specificity (NEVER "people" — always "octogenarian volunteer plating soup"), (5) photographic technical specs (camera, lens, lighting, DoF), (6) negative prompt block. Generic "create a hero image for /about" prompts FAIL `validate-image-prompts.mjs`.
+
+## Fail-CLOSED Auto-Regenerate (***ZERO MISSING IMAGES — NEVER SHIP BLANK SLOTS — UNIVERSAL — BUILD-BREAKING***)
+
+Every slot in `_media_slots.json` MUST end the build with `filled_url != null AND filled_score >= relevance_floor`. Failure modes (Pexels returns nothing, DALL-E returns NSFW-flagged, scraped image broken, GPT-4o vision relevance scores 6/10) trigger immediate auto-regeneration via DALL-E with refined prompt — NEVER silent skip, NEVER substitute brand-gradient placeholder unless 5 regen attempts exhausted. The build does not declare "complete" until every slot is filled at threshold.
+
+**Regen loop (per slot, max 5 attempts):**
+1. Initial fill via `source_chain` walk: original → Pexels Video → Coverr → DALL-E → Flux → brand-gradient. First source returning a candidate gets vision-scored.
+2. If `filled_score < relevance_floor` (default 8/10) OR source returned 0 candidates → regen with DALL-E using REFINED prompt: feed `(original_prompt, vision_critique_of_what_was_wrong, relevance_floor)` to gpt-4o, get back tightened prompt naming what to ADD + what to REMOVE. Increment `regen_attempts`.
+3. Refined DALL-E generation (gpt-image-1 HD, ~$0.04-0.08) → vision-score → if pass, commit; if fail and `regen_attempts < 5`, GOTO 2.
+4. After 5 attempts: log to `_unfillable_slots.json`, fall back to brand-gradient + log critical warning. **Build still completes** (gradient is the last-resort floor that prevents 404s) but post-build report flags the slot for manual review. Default behavior is regen-until-pass — fallback only on hard exhaustion.
+
+**Hard gate:** `_unfillable_slots.json` must be empty for a clean build. ANY entry = build status `published_with_warnings`, dashboard surfaces the slot for manual replacement, alert email to operator. The gate prevents the lone-mountain-global-3 + njsk-light class of failure where slots silently shipped empty or with off-topic generic stock.
+
+**Cost ceiling:** 5 regen attempts × $0.08/img = $0.40 worst case per slot. With ~30 slots/site at typical 0.3 regen rate average, total worst-case DALL-E spend ~$3.60/site (most sites: $0.50-1.50). Tracked per-build in `_dalle_spend.json`; daily rollup in `_dalle_daily.json` against `OPENAI_DAILY_BUDGET` env (default $50). Budget exhaustion triggers fallback to Flux for remainder of day.
+
 ## Original Media Extraction (***FIRST STEP — EVERY BUILD WITH A SOURCE SITE***)
 
 Before any stock/AI sourcing, walk the source site and extract EVERYTHING. The original site's media is canonical brand voice — discarding it is malpractice.
@@ -78,27 +124,32 @@ When `_pdf_facts.json` contains a CV with ≥3 timeline-eligible entries (positi
 
 **Budget split:** GPT-4o vision QA capped at $1 (see completeness-verification). Media generation/acquisition is a SEPARATE budget — spend what's needed to make the site gorgeous. Ideogram (~$0.05/logo), GPT Image 1.5 (~$0.04/image), Stability (~$0.03/image), stock APIs (free tiers). Typical media budget: $0.50-2.00/site. This is GOOD spend — it creates the content that makes sites convert.
 
-## API Priority Chain
+## API Priority Chain (***DALL-E ELEVATED — Brian's stated preference for slot-fill***)
+
+Real photos of the actual entity always win when they exist (Places/uploads/scrape — slots 1-3). Beyond that, DALL-E becomes the PRIMARY originator for every slot the source chain didn't naturally fill — it crafts the per-slot ultra-realistic perfect photo for each spot. Stock APIs are supplements + speed-passes, not the workhorse.
 
 | Priority | API | Key | Use | Rate | Confidence |
 |----------|-----|-----|-----|------|------------|
-| 1 | Google Places Photos | GOOGLE_PLACES_API_KEY | Actual business photos | 1000/day | 85-95 |
+| 1 | Google Places Photos | GOOGLE_PLACES_API_KEY | Actual business photos (real entity wins) | 1000/day | 85-95 |
 | 2 | User uploads | (form) | Submitted via /create | — | 95 |
-| 3 | Website scrape | (fetch) | Images from existing site | — | 80-90 |
-| 4 | Foursquare | FOURSQUARE_API_KEY | Venue-specific photos | — | 65-75 |
-| 5 | Yelp Fusion | YELP_API_KEY | Business listing photos | — | 60-70 |
-| 6 | Google CSE | GOOGLE_CSE_KEY+CX | Web image search | 100/day | 40-70 |
-| 7 | Pexels | PEXELS_API_KEY | Stock photos + videos (PRIMARY stock) | 200/hr | 60 |
+| 3 | Website scrape | (fetch) | Images from existing site (preserve brand equity) | — | 80-90 |
+| 4 | **DALL-E 3 HD / gpt-image-1** | OPENAI_API_KEY | **PRIMARY slot-fill engine — per-slot ultra-real perfect photo** | — | 85 |
+| 5 | Pexels | PEXELS_API_KEY | Stock photos + videos (speed-pass) | 200/hr | 60 |
+| 6 | Pexels Video | PEXELS_API_KEY | Hero video loops (preferred over static stock) | 200/hr | 70 |
+| 7 | Google CSE | GOOGLE_CSE_KEY+CX | Web image search (filtered + relevance-scored) | 100/day | 40-70 |
 | 8 | Unsplash | UNSPLASH_ACCESS_KEY | Stock photos (landscape) | 50/hr | 55 |
 | 9 | Pixabay | PIXABAY_API_KEY | Illustrations, vectors | 100/hr | 45 |
-| 10 | Flux 1.1 Pro Ultra | FAL_API_KEY OR REPLICATE_API_TOKEN | Photoreal hero (humans, complex scenes) | — | 85 |
+| 10 | Flux 1.1 Pro Ultra | FAL_API_KEY OR REPLICATE_API_TOKEN | Secondary AI (photoreal humans, complex scenes) | — | 85 |
 | 11 | GPT Image 1.5 | OPENAI_API_KEY | Stylized illustrations, sections, OG | — | 80 |
 | 12 | Ideogram 3.0 | IDEOGRAM_API_KEY | Logo + favicon set + text-heavy | — | 80 |
 | 13 | Recraft V3 | RECRAFT_API_KEY | Editable SVG icon sets | — | 75 |
-| 14 | DALL-E 3 HD | OPENAI_API_KEY | Fallback when Flux key absent | — | 75 |
-| 15 | Stability AI SD3 | STABILITY_API_KEY | Backgrounds, patterns, textures | — | 65 |
-| 16 | Sora | OPENAI_API_KEY | 5–10s video loops | — | 70 |
-| 17 | Cloudinary | CLOUDINARY_* | Transform layer (WebP/AVIF, AI-crop) | 25GB free | — |
+| 14 | Foursquare | FOURSQUARE_API_KEY | Venue-specific photos | — | 65-75 |
+| 15 | Yelp Fusion | YELP_API_KEY | Business listing photos | — | 60-70 |
+| 16 | Stability AI SD3 | STABILITY_API_KEY | Backgrounds, patterns, textures | — | 65 |
+| 17 | Sora | OPENAI_API_KEY | 5–10s video loops | — | 70 |
+| 18 | Cloudinary | CLOUDINARY_* | Transform layer (WebP/AVIF, AI-crop) | 25GB free | — |
+
+**DALL-E-first slot-fill rule (***UNIVERSAL — for slots 4+ in the chain***):** Once real-entity sources (Places/uploads/scrape) are exhausted, DALL-E is invoked BEFORE generic stock — the per-slot prompt produces a tighter topic match than any stock library can return. Stock APIs run in parallel as speed-pass fallback (instant return for quick fill if DALL-E call hangs >15s) but DALL-E output is preferred at curation. Brian's preference: "DALL-E can literally create the ultra-realistic perfect photo for any given photo spot, so rely on that fact" — encoded as default behavior, not opt-in.
 
 **2026 image-stack pricing reference (***drives engine selection in research_images prompt***):**
 

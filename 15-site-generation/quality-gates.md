@@ -56,6 +56,9 @@ These validators run in `build_validators.ts` between R2 upload and `published` 
 | `validate-blog-filters.mjs` | always.md blog-listing-functional-filters (nyfoldingbox 2026-05-02) | `blog.filter_inert` \| `blog.url_no_sync` \| `blog.search_inert` \| `blog.deep_link_ignored` \| `blog.empty_state_missing` |
 | `validate-html-entities.mjs` | always.md no-html-entities-in-jsx (njsk.org 2026-05-02 — `&apos;` literal in `we-need.tsx` data array rendered as `person&apos;s` in production) | `entity.literal_in_jsx` \| `entity.literal_in_dist_html` |
 | `validate-underline-hover.mjs` | always.md universal-underline-hover (njsk.org 2026-05-02 contact hero rendered double-underline + faint dark-on-dark link) | `underline.double_render` \| `underline.layer_components` \| `underline.color_overrides_parent` |
+| `validate-no-empty-slots.mjs` | skill 15 media-acquisition Media-Slot-Manifest + Fail-CLOSED auto-regenerate | `slot.unfilled` \| `slot.below_relevance_floor` \| `slot.fallback_gradient_used` |
+| `validate-dalle-slot-fill.mjs` | skill 15 media-acquisition DALL-E-first slot-fill + per-slot prompt mandatory fields (page topic + brand palette + composition + subject specificity + photographic specs + negative prompt) | `dalle.prompt_generic` \| `dalle.missing_negative_prompt` \| `dalle.missing_palette_token` \| `dalle.missing_subject_specificity` |
+| `validate-media-slot-manifest.mjs` | skill 15 media-acquisition Media-Slot-Manifest (every route enumerated pre-generation, every slot record has dalle_prompt + source_chain + relevance_floor) | `manifest.missing` \| `manifest.route_uncovered` \| `manifest.slot_record_incomplete` |
 
 ## Gorgeous-Loop Reinforcement (***FINAL CRITIQUE BEFORE DEPLOY — every site***)
 
