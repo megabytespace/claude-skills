@@ -322,6 +322,85 @@ The router loads the smallest useful subset per task — never the full 94 docs.
 | "Add analytics" | 13 (+ 09/social if publishing) |
 | "Brainstorm ideas" | 03 → 14 |
 
+## Ideal Prompts
+
+Copy-paste these as-is. Each one routes through the skill graph and produces a deployed, gate-cleared product. The shorter the prompt, the more the skill engine infers — domain name alone is enough.
+
+### Build a SaaS from a domain
+```
+Build acmebilling.dev — recurring subscription billing for indie SaaS founders. Stripe-native, Clerk auth, Inngest for retry workflows.
+```
+**Skills:** 01→02→03→05→06→07→08→13. **Agents:** architect (Opus) → 5 parallel build agents → deploy-verifier+seo-auditor+visual-qa. **Gate fires:** API Key Gate checks `STRIPE_*`, `CLERK_*`, `INNGEST_*`, `CLOUDFLARE_API_KEY` (global) before any scaffold. **Output:** live Worker on `acmebilling.dev` with checkout, dashboard, webhook handler, Sentry+PostHog+GA4 wired.
+
+### Rebuild an existing site
+```
+Rebuild brianzalewski.com — pull current site from Wayback if dead, keep every page, modernize design, ship to CF Workers.
+```
+**Skills:** 01→02→09 (brand extraction)→15 (full corpus + media+video extraction + grammar audit)→07→08. **Agents:** architect → content-writer + visual-qa + seo-auditor. **Gate:** every original URL = 200 or 301; logo retention; theme match; favicon set via real-favicongenerator.
+
+### Spin up a portfolio from one line
+```
+Make me a portfolio site at brian.dev — I'm a principal engineer, AI builder, Megabyte Labs founder.
+```
+**Skills:** 01→02 (founder inference)→09→10→11→12→14 (auto-suggests project tiles + impact stats)→07→08. **Optional pairing:** if a flagship SaaS exists, portfolio links to it as primary work. **Output:** dark-first single-page with hero + work + writing + contact.
+
+### Local-business site (NAP + reviews + map)
+```
+Build paterson-dental.com — family dental practice in Paterson NJ, online booking, insurance verification, Spanish/English.
+```
+**Skills:** 01→02→09→10→13 (local conversion patterns: phone_click, direction_click, booking_click). **Gate:** `GOOGLE_MAPS_API_KEY` + `GOOGLE_PLACES_API_KEY` required. **Output:** full-width Maps embed, NAP schema.org `LocalBusiness`, OpenTable/Booksy embed, Twilio SMS booking.
+
+### Non-profit with donation flow
+```
+Build sjsk.org — community clothing distribution for SJSK in Newark, donor portal, impact counter, tax receipt PDFs.
+```
+**Skills:** 01→02→09→13 (Stripe-first GiveDirectly UX). **Gate:** `STRIPE_*` keys. **Output:** Donate CTA in nav, recurring + one-time, Resend tax receipts, impact counters with IO+rAF roll-in.
+
+### Brainstorm before you build
+```
+What's the highest-ROI thing I can ship this week? Read PORTFOLIO.md, scan current projects, propose 3 ideas with confidence scores.
+```
+**Skills:** 14 (idea engine) → bounded web research → self-critique filter. **Output:** 3 evidence-backed proposals with `apa_citation` per claim, viral coefficient + AI search visibility scoring, auto-implements `confidence ≥ 0.85` aligned ideas.
+
+### Add a feature to an existing project
+```
+Add a magic-link auth flow to acme.dev — passwordless email via Resend, Clerk session, redirect to /dashboard.
+```
+**Skills:** 05 (architecture decision)→06 (build slice)→07 (Playwright E2E homepage-first). **Agents:** test-writer (failing test FIRST) → implementation → deploy-verifier.
+
+### Debug a wedged pipeline
+```
+projectsites.dev workflow stuck on site_id 47 for 3 hours. Diagnose, fix, retrigger.
+```
+**Skills:** 08 (deploy/runtime)→07. **Rule loaded:** `failed-pipeline-protocol.md` (5 canonical failure modes). **Sequence:** detect via D1 query → diagnose root cause (CHECK constraint? timeout? OOM?) → fix → verify in isolation → mint session → retrigger via direct worker URL → background monitor.
+
+### Ship a content-driven blog at scale
+```
+Generate 50 programmatic SEO pages for acme.dev — integration|comparison|use-case|template|location templates, GEO-optimized, citations.
+```
+**Skills:** 09 (pSEO 5 types + GEO + sourced facts via APA citations)→06→07. **Output:** 50 unique routes, no templated copy, every quantitative claim cites APA 7th source, Schema.org `Article` with `citation:CreativeWork[]`.
+
+### One-line magic
+```
+ghost.megabyte.space
+```
+**Skills:** 01 (one-line prompt mode inference)→02→05→09→10→11→12→07→08. Domain alone routes to a complete product. Gate fires. Brand extracted from existing infrastructure. Curated dark/neon aesthetic from `~/Snapchat/best/` 622-shot reference. Logo from Ideogram. Deployed to CF Workers.
+
+### Prompt patterns that work
+
+| Phrase | Effect |
+|--------|--------|
+| `boil the lake` | Force complete-not-shortcut mode for the next decision |
+| `parallel everything` | Decompose first, spawn 3-5 agents per phase |
+| `skip api key gate` | Bypass key check (rare — deploys will likely 500) |
+| `recommendations loop until zero` | Keep finding+fixing until no rec remains |
+| `chain MCPs` | Use meta-orchestrator across 19+ services |
+| `homepage-first` | Reset E2E flow to start at `/` and click through |
+| `boil X, flag Y` | Do X completely; surface Y as issue |
+| `make it shorter` | Reduce 40-60% (Brian's #1 most-used phrase, 670+ logged uses) |
+| `the whole thing` | Never truncate — full file output |
+| `Now ...` | Chain to previous task, don't reset context |
+
 ## Philosophy
 
 **Distribution > Technology.** The best tool nobody knows about is the worst tool. Auto-create repos for new skills. Integrate into every ecosystem. Broadcast widely.
