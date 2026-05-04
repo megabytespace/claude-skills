@@ -50,8 +50,9 @@ submodules:
 |------|---------|---------------|
 | Hosting | CF Workers + Static Assets | Never |
 | Backend | Hono v4.12.x on Workers | Complex GraphQL → Yoga |
-| Frontend (simple) | Vanilla HTML/CSS/JS | >3 interactive pages |
-| Frontend (complex) | Angular 21 + Ionic + PrimeNG + Nx | Simple marketing site |
+| Frontend (default) | Angular 21 + Ionic + PrimeNG + Nx (standalone, signals, zoneless) | Trivial single-page static landing only |
+| Frontend (audio/canvas/SPA) | Angular 21 mandatory — never vanilla TS, even when "feels simple". Audio engine, visualizer, karaoke, modal routing, history-API SPAs all qualify | Never |
+| Frontend (marketing-static) | Astro + Angular islands | Single-route promo with no interactivity |
 | DB (simple) | D1 (SQLite, global read replication) | Joins >3 tables |
 | DB (complex) | Neon PostgreSQL | D1 sufficient |
 | Cache | KV / Upstash Redis | Atomic ops → D1 |
